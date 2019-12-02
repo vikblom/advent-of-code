@@ -1,16 +1,11 @@
 ;; Input
-(with-input-from-file path
-  (lambda () (let loop
-                 ((count 0))
-               (if (eof-object? (read-line)) count (loop (+ count 1))))))
-
 (define masses
   (map string->number
        (call-with-input-file "input.txt"
          (lambda (port) (read-lines port)))))
 
 ;; Part 1
-(define (fuel-req mass) (-  (floor (/ mass 3)) 2))
+(define (fuel-req mass) (- (floor (/ mass 3)) 2))
 
 (fold + 0 (map (lambda (mass) (fuel-req mass)) masses))
 
