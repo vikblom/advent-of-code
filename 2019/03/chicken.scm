@@ -37,9 +37,7 @@
 (define (manhattan pos) (+ (abs (car pos)) (abs (cdr pos))))
 
 (define (str-to-pos input)
-  (cdr (reverse
-        (fold trailer '((0 . 0))
-              (parse-moves input)))))
+  ((compose cdr reverse fold) trailer '((0 . 0)) (parse-moves input)))
 
 (define (xs pos1 pos2)
   (let ((pmap (make-hash-table)))
@@ -75,14 +73,12 @@
 ;; not in the path. So result + 2 is the true answer
 
 (define (best-cross crosses in1 in2)
+  (define (dist-to-cross cross path)
+    (list-index (lambda (x) (equal? x cross)) path))
+  (define (dist-to-crosses path)
+    (map dist-to-cross crosses (circular-list path)))
   (apply min
-         (map +
-              (map (lambda (cross)
-                     (list-index (lambda (x)
-                                   (equal? x cross)) in1)) crosses)
-              (map (lambda (cross)
-                     (list-index (lambda (x)
-                                   (equal? x cross)) in2)) crosses))))
+         (map + (dist-to-crosses in1) (dist-to-crosses in2))))
 
 (define (part-two str1 str2)
   (let ((pos1 (str-to-pos str1))
@@ -97,4 +93,4 @@
 (part-two "R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51"
           "U98,R91,D20,R16,D67,R40,U7,R15,U6,R7") ;; 410
 
-(print (part-two (car input) (cadr input)))
+(part-two (car input) (cadr input)) ;; 14228
