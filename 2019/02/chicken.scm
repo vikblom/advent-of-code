@@ -1,3 +1,9 @@
+(import (chicken io) (chicken string))
+(define inputs
+  (map string->number (string-split
+                       (call-with-input-file "input.txt"
+                         (lambda (port) (read-line port)))
+                       ",")))
 
 (define example-1 (vector 1 0 0 0 99))
 
@@ -28,12 +34,6 @@
     (else (error "UNKOWN OPCODE" opcode))))
 
 
-(import (chicken io) (chicken string))
-(define inputs
-  (map string->number (string-split
-                       (call-with-input-file "input.txt"
-                         (lambda (port) (read-line port)))
-                       ",")))
 
 (begin
   (define program1 (list->vector inputs))
