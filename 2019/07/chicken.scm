@@ -36,9 +36,8 @@
 (define (permute lst)
   (if (equal? 1 (length lst))
       (list lst)
-      (apply append
-             (map (lambda (sub) (insert sub (car lst)))
-                  (permute (cdr lst))))))
+      (append-map (lambda (sub) (insert sub (car lst)))
+                  (permute (cdr lst)))))
 
 ;; PART 1
 ;; (apply max (map (lambda (p) (run-acs-seq ic1 p)) (permute '(0 1 2 3 4))))
