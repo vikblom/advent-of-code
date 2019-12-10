@@ -77,7 +77,7 @@
 
 (maximize-feedback ic4)
 (maximize-feedback ic5)
-(maximize-feedback (read-a-line "input.txt"))
+(maximize-feedback (read-a-line "07/input.txt"))
 
 
 (apply max (map (lambda (p) (exhaust-feedback (read-a-line "input.txt") p))
