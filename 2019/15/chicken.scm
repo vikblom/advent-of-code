@@ -1,3 +1,5 @@
+(import srfi-1 srfi-69 (chicken io))
+
 (load "../advent.scm")
 (load "../intcode.scm")
 
@@ -154,4 +156,4 @@
             (loop (+ minutes 1)))
      minutes)))
 
-(print (part2 karta goal) " minutes to spread all oxygen.")
+(print "Minutes to spread all oxygen: "(part2 karta goal))
