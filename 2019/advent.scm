@@ -33,6 +33,7 @@
 
 
 (define (read-bytes) (collect! read-byte (compose eof-object? peek-char)))
+(define (read-chars) (collect! read-char (compose eof-object? peek-char)))
 
 
 (define (nbrs pos)
