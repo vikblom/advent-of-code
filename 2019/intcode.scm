@@ -166,6 +166,10 @@
   (list->vector (map string->number (string-split src ","))))
 ;;(map (lambda (e) (array-add! e program)) (reverse inputs))
 
+(define (intcode-file f)
+  (intcode-setup
+   (with-input-from-file f read-line)))
+
 (define (intcode-run ic . inputs)
   ;; If first time around we should parse the string
   (if (string? ic) (set! ic (intcode-setup ic)))
