@@ -4,7 +4,9 @@ import (
 	"bufio"
 	"bytes"
 	"io"
+	"os"
 	"strconv"
+	"strings"
 )
 
 func ScanCSV(data []byte, atEOF bool) (advance int, token []byte, err error) {
@@ -20,6 +22,27 @@ func ScanCSV(data []byte, atEOF bool) (advance int, token []byte, err error) {
 		return len(data), data, nil
 	}
 	return 0, nil, nil
+}
+
+func ReadCSV(filename string) ([]int, error) {
+	content, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	r := bytes.NewBuffer(content)
+	sc := bufio.NewScanner(r)
+	sc.Split(ScanCSV)
+
+	ints := []int{}
+	for sc.Scan() {
+		f, err := strconv.Atoi(strings.TrimSpace(sc.Text()))
+		if err != nil {
+			return nil, err
+		}
+		ints = append(ints, f)
+	}
+	return ints, nil
 }
 
 func ReadInts(rdr io.Reader) ([]int, error) {
