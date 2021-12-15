@@ -3,6 +3,7 @@ package aoc
 import (
 	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"strconv"
@@ -56,4 +57,38 @@ func ReadInts(rdr io.Reader) ([]int, error) {
 		data = append(data, x)
 	}
 	return data, nil
+}
+
+type Matrix struct {
+	rows int
+	cols int
+	data []int // row major
+}
+
+func NewMatrix(rows, cols int) Matrix {
+	return Matrix{
+		rows: rows,
+		cols: cols,
+		data: make([]int, rows*cols),
+	}
+}
+
+func (m Matrix) String() string {
+	var s strings.Builder
+	for i, v := range m.data {
+		if i > 0 && i%m.cols == 0 {
+			fmt.Fprintf(&s, "\n")
+		}
+		if v > 0 {
+			fmt.Fprintf(&s, "%d", v)
+		} else {
+			fmt.Fprintf(&s, ".")
+		}
+	}
+	return s.String()
+}
+
+func (m Matrix) Increment(row, col int) {
+	index := row*m.cols + col
+	m.data[index]++
 }
