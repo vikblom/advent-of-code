@@ -131,22 +131,23 @@ func Part2(input []byte) (int, error) {
 		folds = append(folds, Fold{string(c), n})
 	}
 
+	// Modify dots map inplace.
 	for _, fold := range folds {
-		new := make(map[Dot]bool)
 		for dot := range dots {
-			d := Dot{dot.x, dot.y}
 			if fold.dim == "x" {
-				if d.x > fold.n {
-					d.x = fold.n - (d.x - fold.n)
+				if dot.x > fold.n {
+					delete(dots, dot)
+					dot.x = fold.n - (dot.x - fold.n)
+					dots[dot] = true
 				}
 			} else {
-				if d.y > fold.n {
-					d.y = fold.n - (d.y - fold.n)
+				if dot.y > fold.n {
+					delete(dots, dot)
+					dot.y = fold.n - (dot.y - fold.n)
+					dots[dot] = true
 				}
 			}
-			new[d] = true
 		}
-		dots = new
 	}
 	DrawDots(dots)
 
