@@ -73,6 +73,33 @@ func NewMatrix(rows, cols int) Matrix {
 	}
 }
 
+func IntSqrt(n int) int {
+	x := n
+	y := 1
+	for x > y {
+		x = (x + y) / 2
+		y = n / x
+	}
+	return x
+}
+
+func ToMatrix(data []int) Matrix {
+	return Matrix{
+		data: data,
+		// FIXME
+		rows: IntSqrt(len(data)),
+		cols: IntSqrt(len(data)),
+	}
+}
+
+func (m Matrix) Width() int {
+	return m.cols
+}
+
+func (m Matrix) Height() int {
+	return m.rows
+}
+
 func (m Matrix) String() string {
 	var s strings.Builder
 	for i, v := range m.data {
@@ -86,6 +113,39 @@ func (m Matrix) String() string {
 		}
 	}
 	return s.String()
+}
+
+type XY struct {
+	X int
+	Y int
+}
+
+func (m Matrix) Neighbours(row, col int) []XY {
+	nbrs := []XY{}
+	if row > 0 {
+		nbrs = append(nbrs, XY{row - 1, col})
+	}
+	if row < (m.rows - 1) {
+		nbrs = append(nbrs, XY{row + 1, col})
+	}
+
+	if col > 0 {
+		nbrs = append(nbrs, XY{row, col - 1})
+	}
+	if col < (m.cols - 1) {
+		nbrs = append(nbrs, XY{row, col + 1})
+	}
+	return nbrs
+}
+
+func (m Matrix) At(row, col int) int {
+	index := row*m.cols + col
+	return m.data[index]
+}
+
+func (m Matrix) Set(row, col, val int) {
+	index := row*m.cols + col
+	m.data[index] = val
 }
 
 func (m Matrix) Increment(row, col int) {
