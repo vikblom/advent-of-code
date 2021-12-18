@@ -160,3 +160,53 @@ func TestPartTwo(t *testing.T) {
 	ans := most - least
 	log.Println("Part 2:", ans)
 }
+
+// Solution from https://skarlso.github.io/2021/12/14/aoc-day14/
+func TestPartTwoFaster(t *testing.T) {
+	polymer, rules, err := readInput()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	thesePairs := make(map[RunePair]int)
+	for i := 0; i < len(polymer)-1; i++ {
+		thesePairs[RunePair{polymer[i], polymer[i+1]}]++
+	}
+
+	for iter := 0; iter < 40; iter++ {
+		nextPairs := make(map[RunePair]int)
+		for pair, count := range thesePairs {
+			char, ok := rules[pair]
+			if ok {
+				nextPairs[RunePair{pair.left, char}] += count
+				nextPairs[RunePair{char, pair.right}] += count
+			} else {
+				nextPairs[pair] = count
+			}
+		}
+		thesePairs = nextPairs
+	}
+
+	counts := make(map[rune]int)
+	for k, v := range thesePairs {
+		counts[k.right] += v
+	}
+	// Patch up counts after only counting "rights".
+	counts[polymer[0]]++
+
+	//log.Println(counts)
+
+	most := 0
+	least := math.MaxInt64
+	for _, c := range counts {
+		if c > most {
+			most = c
+		}
+		if c < least && c != 0 {
+			least = c
+		}
+	}
+
+	ans := most - least
+	log.Println("Part 2b:", ans)
+}
