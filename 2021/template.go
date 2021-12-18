@@ -1,34 +1,42 @@
-package main
+package solve
 
 import (
 	"log"
 	"os"
+	"testing"
 )
 
-func Part1(input []byte) (int, error) {
-	return 0, nil
-}
+const FILE = "test.txt"
 
-func Part2(input []byte) (int, error) {
-	return 0, nil
-}
-
-func main() {
-	input, err := os.ReadFile("input.txt")
+func readInput() ([]byte, error) {
+	input, err := os.ReadFile(FILE)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	ans, err := Part1(input)
+	return input, nil
+}
+
+func TestPartOne(t *testing.T) {
+	input, err := readInput()
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
+
+	_ = input
+
+	ans := 0
 	log.Println("Part 1:", ans)
+}
 
-	ans, err = Part2(input)
+func TestPartTwo(t *testing.T) {
+	input, err := readInput()
 	if err != nil {
-		log.Fatal(err)
+		t.Fatal(err)
 	}
-	log.Println("Part 2:", ans)
 
+	_ = input
+
+	ans := 0
+	log.Println("Part 2:", ans)
 }
