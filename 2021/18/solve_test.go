@@ -32,7 +32,6 @@ func TestExplode(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Log(tt.input)
 		sf := []byte(tt.input)
 		got := string(Explode(sf, FindExplosion(sf)))
 		if tt.want != got {
