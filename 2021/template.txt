@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-const FILE = "test.txt"
+const FILE = "input.txt"
 
 func readInput() ([]byte, error) {
 	input, err := os.ReadFile(FILE)
