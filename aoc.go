@@ -152,3 +152,19 @@ func (m Matrix) Increment(row, col int) {
 	index := row*m.cols + col
 	m.data[index]++
 }
+
+func MaxInt(a, b int) int {
+	if a > b {
+		return a
+	} else {
+		return b
+	}
+}
+
+func MinInt(a, b int) int {
+	if a < b {
+		return a
+	} else {
+		return b
+	}
+}
