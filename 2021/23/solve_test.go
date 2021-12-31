@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	aoc "gitlab.com/vikblom/advent-of-code"
 )
@@ -149,15 +150,20 @@ func (s State) AllMovesFrom(m Map, row, col int) []*State {
 	c := s.pods[[2]int{row, col}]
 	if row == 1 { // corridor
 		home := homecol[c]
-		// There must be place to move in
-		if _, busy := s.pods[[2]int{2, home}]; busy {
-			return nil
-		}
+
 		// Can only move in with friends or empty
-		nbr, busy := s.pods[[2]int{3, home}]
-		if busy && nbr != c {
+		hospitable := true
+		for d := 2; d < m.rows-1; d++ {
+			o := s.pods[[2]int{d, home}]
+			if !(o == 0 || o == c) {
+				hospitable = false
+				break
+			}
+		}
+		if !hospitable {
 			return nil
 		}
+
 		// Check if the corridor is free, note that no ant can be at
 		// the opening, so checking (left, right) is fine.
 		left := aoc.MinInt(col, home)
@@ -190,18 +196,28 @@ func (s State) AllMovesFrom(m Map, row, col int) []*State {
 		}
 
 	} else {
-		// Check if column is already packed with correct ants.
 		if col == homecol[c] {
-			if row == 3 || s.pods[[2]int{3, col}] == c {
-				//log.Println("ALREADY GOOD")
+			// If in correct column, check if we should stay here.
+			// I.e. only more of correct char below us.
+			allHome := true
+			for d := row; d < m.cols; d++ {
+				if s.pods[[2]int{d, col}] == c {
+					allHome = false
+				}
+			}
+			if allHome {
 				return nil
 			}
 		}
 
-		// Check if this and is blocked in by some other ant.
-		if row == 3 && s.pods[[2]int{2, col}] > 0 {
-			// Some other ant must get out first.
-			//log.Println("LOCKED IN")
+		// Check if it is even possible to move out to the corridor
+		free := true
+		for d := row - 1; d > 1; d-- {
+			if s.pods[[2]int{2, col}] > 0 {
+				free = false
+			}
+		}
+		if !free {
 			return nil
 		}
 
@@ -269,30 +285,7 @@ func (q *Queue) Pop() interface{} {
 	return item
 }
 
-// func TestFoo(t *testing.T) {
-// 	m, pods, err := ReadMap("foo.txt", 5, 13)
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-
-// 	head := State{
-// 		energy: 0,
-// 		pods:   pods,
-// 	}
-
-// 	//for pos := range pods {
-// 	//for _, st := range head.AllMovesFrom(m, pos[0], pos[1]) {
-// 	for _, st := range head.AllMovesFrom(m, 1, 11) {
-// 		fmt.Println(Draw(m, st.pods))
-// 	}
-// 	//}
-// }
-
-func TestPartOne(t *testing.T) {
-	m, pods, err := ReadMap("input.txt", 5, 13)
-	if err != nil {
-		t.Fatal(err)
-	}
+func Solve(m Map, pods Pods) int {
 
 	q := make(Queue, 1)
 	q[0] = &State{
@@ -324,18 +317,30 @@ func TestPartOne(t *testing.T) {
 		}
 	}
 
-	log.Println("Part 1:", ans)
+	return ans
 }
 
-func TestPartTwo(t *testing.T) {
-	input, pods, err := ReadMap("test2.txt", 7, 13)
+func TestPartOne(t *testing.T) {
+	m, pods, err := ReadMap("test.txt", 5, 13)
 	if err != nil {
-		t.Fatal(err)
+		log.Fatal(err)
 	}
+	start := time.Now()
+	log.Println("Test 1:", Solve(m, pods), time.Since(start))
 
-	_ = pods
-	_ = input
-
-	ans := 0
-	log.Println("Part 2:", ans)
+	m, pods, err = ReadMap("input.txt", 5, 13)
+	if err != nil {
+		log.Fatal(err)
+	}
+	start = time.Now()
+	log.Println("Input 1:", Solve(m, pods), time.Since(start))
 }
+
+// func TestPartTwo(t *testing.T) {
+// 	m, pods, err := ReadMap("test2.txt", 7, 13)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	log.Println("Test 2:", Solve(m, pods))
+
+// }
