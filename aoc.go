@@ -168,3 +168,10 @@ func MinInt(a, b int) int {
 		return b
 	}
 }
+
+func AbsInt(a int) int {
+	if a < 0 {
+		return -a
+	}
+	return a
+}
