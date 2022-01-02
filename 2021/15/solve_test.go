@@ -25,7 +25,8 @@ func readInput() (aoc.Matrix, error) {
 		data = append(data, int(r-'0'))
 	}
 
-	return aoc.ToMatrix(data), nil
+	v := aoc.IntSqrt(len(data))
+	return aoc.ToMatrix(data, v, v), nil
 }
 
 type Pos struct {

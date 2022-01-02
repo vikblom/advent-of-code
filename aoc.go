@@ -83,12 +83,11 @@ func IntSqrt(n int) int {
 	return x
 }
 
-func ToMatrix(data []int) Matrix {
+func ToMatrix(data []int, rows, cols int) Matrix {
 	return Matrix{
 		data: data,
-		// FIXME
-		rows: IntSqrt(len(data)),
-		cols: IntSqrt(len(data)),
+		rows: rows,
+		cols: cols,
 	}
 }
 
@@ -107,7 +106,7 @@ func (m Matrix) String() string {
 			fmt.Fprintf(&s, "\n")
 		}
 		if v > 0 {
-			fmt.Fprintf(&s, "%d", v)
+			fmt.Fprintf(&s, "%v", v)
 		} else {
 			fmt.Fprintf(&s, ".")
 		}
