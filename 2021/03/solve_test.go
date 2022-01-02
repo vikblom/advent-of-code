@@ -1,4 +1,4 @@
-package main
+package solve
 
 import (
 	"bufio"
@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"testing"
 )
 
 func Part1(input []byte) (int, error) {
@@ -97,7 +98,7 @@ func Part2(input []byte) (int, error) {
 	return Oxygen(nums, digits) * C02(nums, digits), nil
 }
 
-func main() {
+func TestDay(t *testing.T) {
 	input, err := os.ReadFile("input.txt")
 	if err != nil {
 		log.Fatal(err)

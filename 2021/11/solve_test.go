@@ -1,10 +1,11 @@
-package main
+package solve
 
 import (
 	"fmt"
 	"log"
 	"os"
 	"strings"
+	"testing"
 )
 
 type Octopi struct {
@@ -148,7 +149,7 @@ func Part2(input []byte) (int, error) {
 	return step, nil
 }
 
-func main() {
+func TestDay(t *testing.T) {
 	input, err := os.ReadFile("input.txt")
 	if err != nil {
 		log.Fatal(err)

@@ -1,4 +1,4 @@
-package main
+package solve
 
 import (
 	"bufio"
@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"sort"
+	"testing"
 )
 
 type Readout struct {
@@ -145,7 +146,7 @@ parse:
 	return readouts, nil
 }
 
-func main() {
+func TestDay(t *testing.T) {
 	input, err := os.ReadFile("input.txt")
 	if err != nil {
 		log.Fatal(err)

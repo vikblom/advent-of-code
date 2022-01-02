@@ -1,7 +1,8 @@
-package main
+package solve
 
 import (
 	"log"
+	"testing"
 
 	aoc "gitlab.com/vikblom/advent-of-code"
 )
@@ -93,7 +94,7 @@ func Part2(crabs []int) (int, error) {
 	return bestFuel, nil
 }
 
-func main() {
+func TestDay(t *testing.T) {
 	crabs, err := aoc.ReadCSV("input.txt")
 	if err != nil {
 		log.Fatal(err)

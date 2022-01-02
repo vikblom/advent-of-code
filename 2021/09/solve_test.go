@@ -1,4 +1,4 @@
-package main
+package solve
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"testing"
 )
 
 type Pt struct {
@@ -130,7 +131,7 @@ func Part2(m Map) (int, error) {
 	return size[len(size)-1] * size[len(size)-2] * size[len(size)-3], nil
 }
 
-func main() {
+func TestDay(t *testing.T) {
 	input, err := os.ReadFile("input.txt")
 	if err != nil {
 		log.Fatal(err)

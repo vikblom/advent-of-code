@@ -1,8 +1,9 @@
-package main
+package solve
 
 import (
 	"log"
 	"os"
+	"testing"
 
 	aoc "gitlab.com/vikblom/advent-of-code"
 )
@@ -33,7 +34,7 @@ func countWindowIncrs(data []int) int {
 	return incr
 }
 
-func main() {
+func TestDay(t *testing.T) {
 	fh, err := os.Open("input.txt")
 	if err != nil {
 		log.Fatal(err)

@@ -1,4 +1,4 @@
-package main
+package solve
 
 import (
 	"bufio"
@@ -7,6 +7,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"testing"
 
 	aoc "gitlab.com/vikblom/advent-of-code"
 )
@@ -78,7 +79,7 @@ func Part2(input []byte) (int, error) {
 	return sum, nil
 }
 
-func main() {
+func TestDay(t *testing.T) {
 	input, err := os.ReadFile("input.txt")
 	if err != nil {
 		log.Fatal(err)

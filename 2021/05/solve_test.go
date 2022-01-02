@@ -1,4 +1,4 @@
-package main
+package solve
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"testing"
 )
 
 // X is right
@@ -182,7 +183,7 @@ func Part2(lines []Line) (int, error) {
 	return sum, nil
 }
 
-func main() {
+func TestDay(t *testing.T) {
 	input, err := os.ReadFile("input.txt")
 	if err != nil {
 		log.Fatal(err)

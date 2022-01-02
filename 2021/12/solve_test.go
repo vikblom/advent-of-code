@@ -1,4 +1,4 @@
-package main
+package solve
 
 import (
 	"bufio"
@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"testing"
 )
 
 func FirstVisit(ss []string, target string) bool {
@@ -136,7 +137,7 @@ func Part2(input []byte) (int, error) {
 	return n, nil
 }
 
-func main() {
+func TestDay(t *testing.T) {
 	input, err := os.ReadFile("input.txt")
 	if err != nil {
 		log.Fatal(err)

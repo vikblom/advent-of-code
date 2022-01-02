@@ -1,4 +1,4 @@
-package main
+package solve
 
 import (
 	"bufio"
@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"testing"
 )
 
 func MovePart1(input []byte) (int, int, error) {
@@ -61,7 +62,8 @@ func MovePart2(input []byte) (int, int, error) {
 	return depth, pos, nil
 }
 
-func main() {
+func TestDay(t *testing.T) {
+
 	input, err := os.ReadFile("input.txt")
 	if err != nil {
 		log.Fatal(err)
