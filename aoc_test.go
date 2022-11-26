@@ -26,5 +26,4 @@ func TestIntSqrt(t *testing.T) {
 			t.Fatalf("expected: %v, got: %v", tc.want, got)
 		}
 	}
-
 }

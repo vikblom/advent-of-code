@@ -5,8 +5,12 @@ use reqwest::{blocking::Client, cookie::Jar, Url};
 
 const TEMPLATE: &str = include_str!("../../data/template.rs");
 
+fn path_to_input(day: i32) -> std::path::PathBuf {
+    std::path::PathBuf::from(format!("./data/input_{:02}.txt", day))
+}
+
 fn get_input_file(session: &str, day: i32) -> Result<()> {
-    let path = format!("./data/input_{:02}.txt", day);
+    let path = path_to_input(day);
     let mut fh = fs::File::create(path)?;
 
     let url = format!("https://adventofcode.com/2020/day/{}/input", day).parse::<Url>()?;
@@ -33,7 +37,13 @@ fn get_input_file(session: &str, day: i32) -> Result<()> {
 }
 
 fn write_template(day: i32) -> Result<()> {
-    let src = TEMPLATE.replace("%%DAY%%", format!("{:02}", day).as_str());
+    // let relative = std::path::PathBuf::from("../..")
+    //     .join(path_to_input(day))
+    //     .into_os_string()
+    //     .into_string()
+    //     // TODO: Why now Err(anyhow!(...)) here?
+    //     .map_err(|_| anyhow!("invalid path"))?;
+    let src = TEMPLATE.replace("%%DAY%%", &format!("{:02}", day));
     fs::write(format!("./src/bin/day{:02}.rs", day), src)?;
     Ok(())
 }
@@ -45,14 +55,10 @@ fn main() -> Result<()> {
         process::exit(1);
     }
     let day = args[0].parse::<i32>()?;
-
-    let session = env::var("AOC_SESSION").expect("set AOC_SESSION in env");
-
+    let session = env::var("AOC_SESSION")?;
     // input
     get_input_file(&session, day)?;
-
     // src
     write_template(day)?;
-
     Ok(())
 }
