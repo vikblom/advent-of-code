@@ -22,6 +22,7 @@ fn get_input_file(session: &str, day: i32) -> Result<()> {
     let client = Client::builder()
         .timeout(time::Duration::from_secs(10))
         .cookie_provider(sync::Arc::new(jar))
+        .user_agent("github.com/vikblom/advent-of-code by veblomqvist at gmail dot com")
         .build()?;
     let mut resp = client.get(url).send()?;
     // TODO: Is it necessary to check if status is good?
