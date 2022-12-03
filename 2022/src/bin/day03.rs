@@ -1,7 +1,3 @@
-use std::collections::HashSet;
-
-use itertools::Itertools;
-
 const _INPUT: &str = include_str!("../../data/input_03.txt");
 
 const _TEST: &str = "vJrwpWtwJgWrhcsFMMfFFhFp
@@ -20,26 +16,24 @@ fn priority(c: char) -> i64 {
 }
 
 fn part_one(input: &str) -> i64 {
-    let mut score = 0;
-    for line in input.lines() {
-        let (l, r) = line.split_at(line.len() / 2);
-        let ll: HashSet<_> = l.chars().collect();
-        let rr: HashSet<_> = r.chars().collect();
-        score += ll.intersection(&rr).map(|c| priority(*c)).sum::<i64>()
-    }
-    score
+    input
+        .lines()
+        .map(|line| {
+            let (l, r) = line.split_at(line.len() / 2);
+            l.chars().find(|c| r.contains([*c])).map(priority).unwrap()
+        })
+        .sum()
 }
 
 fn part_two(input: &str) -> i64 {
     let mut score = 0;
-    for group in input.lines().chunks(3).into_iter() {
-        score += group
-            .map(|l| l.chars().collect::<HashSet<_>>())
-            .reduce(|acc, x| acc.intersection(&x).cloned().collect())
-            .unwrap()
-            .iter()
-            .map(|c| priority(*c))
-            .sum::<i64>();
+    let mut ll = input.lines();
+    while let (Some(a), Some(b), Some(c)) = (ll.next(), ll.next(), ll.next()) {
+        score += a
+            .chars()
+            .find(|ch| b.contains([*ch]) && c.contains([*ch]))
+            .map(|ch| priority(ch))
+            .unwrap();
     }
     score
 }
