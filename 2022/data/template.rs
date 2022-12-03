@@ -2,11 +2,11 @@ const _INPUT: &str = include_str!("../../data/input_%%DAY%%.txt");
 
 const _TEST: &str = "";
 
-fn part_one(input: &str) -> usize {
+fn part_one(input: &str) -> i64 {
     0
 }
 
-fn part_two(input: &str) -> usize {
+fn part_two(input: &str) -> i64 {
     0
 }
 
