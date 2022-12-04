@@ -1,3 +1,4 @@
+use anyhow::Result;
 use itertools::Itertools;
 
 const _INPUT: &str = include_str!("../../data/input_04.txt");
@@ -44,9 +45,31 @@ fn part_two(input: &str) -> i64 {
         .unwrap()
 }
 
+fn part_one_safe(input: &str) -> Result<i64> {
+    let mut score = 0;
+    for (a, b, c, d) in input.lines().filter_map(|line| {
+        line.split([',', '-'])
+            .filter_map(|v| v.parse::<i64>().ok()) // discard failed parses
+            .collect_tuple::<(_, _, _, _)>() // discard failed rows
+    }) {
+        if a <= c && b >= d {
+            // a contains b
+            score += 1;
+        } else if c <= a && d >= b {
+            // b contains a
+            score += 1;
+        }
+    }
+
+    Ok(score)
+}
+
 fn main() {
     println!("part 1 test: {}", part_one(_TEST));
     println!("part 1 input: {}", part_one(_INPUT));
+
+    println!("part 1 test: {:?}", part_one_safe(_TEST));
+    println!("part 1 input: {:?}", part_one_safe(_INPUT));
 
     println!("part 2 test: {}", part_two(_TEST));
     println!("part 2 input: {}", part_two(_INPUT));
