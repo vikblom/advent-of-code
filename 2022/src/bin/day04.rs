@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 const _INPUT: &str = include_str!("../../data/input_04.txt");
 
 const _TEST: &str = "2-4,6-8
@@ -10,14 +12,17 @@ const _TEST: &str = "2-4,6-8
 
 fn part_one(input: &str) -> i64 {
     let mut score = 0;
-    for sec in input.lines().map(|l| {
-        l.split(&[',', '-'])
+    for (a1, a2, b1, b2) in input.lines().map(|l| {
+        l.split([',', '-'])
             .map(|v| v.parse::<i64>().unwrap())
-            .collect::<Vec<_>>()
+            .collect_tuple::<(_, _, _, _)>()
+            .unwrap()
     }) {
-        if sec[0] <= sec[2] && sec[1] >= sec[3] {
+        if a1 <= b1 && a2 >= b2 {
+            // a contains b
             score += 1;
-        } else if (sec[2] <= sec[0]) && (sec[3] >= sec[1]) {
+        } else if b1 <= a1 && b2 >= a2 {
+            // b contains a
             score += 1;
         }
     }
@@ -30,9 +35,10 @@ fn part_two(input: &str) -> i64 {
         .map(|l| {
             l.split(&[',', '-'])
                 .map(|v| v.parse::<i64>().unwrap())
-                .collect::<Vec<_>>()
+                .collect_tuple::<(_, _, _, _)>()
+                .unwrap()
         })
-        .filter(|sec| sec[0] <= sec[3] && sec[1] >= sec[2])
+        .filter(|(a, b, c, d)| a <= d && b >= c)
         .count()
         .try_into()
         .unwrap()
