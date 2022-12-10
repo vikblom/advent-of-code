@@ -1,4 +1,4 @@
-use std::{env, fs, process, sync, time};
+use std::{env, fs, path::Path, process, sync, time};
 
 use anyhow::Result;
 use reqwest::{blocking::Client, cookie::Jar, Url};
@@ -11,6 +11,10 @@ fn path_to_input(day: i32) -> std::path::PathBuf {
 
 fn get_input_file(session: &str, day: i32) -> Result<()> {
     let path = path_to_input(day);
+    if path.exists() {
+        println!("{} already exists.", path.display());
+        return Ok(());
+    }
     let mut fh = fs::File::create(path)?;
 
     let url = format!("https://adventofcode.com/2022/day/{}/input", day).parse::<Url>()?;
@@ -38,14 +42,13 @@ fn get_input_file(session: &str, day: i32) -> Result<()> {
 }
 
 fn write_template(day: i32) -> Result<()> {
-    // let relative = std::path::PathBuf::from("../..")
-    //     .join(path_to_input(day))
-    //     .into_os_string()
-    //     .into_string()
-    //     // TODO: Why now Err(anyhow!(...)) here?
-    //     .map_err(|_| anyhow!("invalid path"))?;
+    let path = format!("./src/bin/day{:02}.rs", day);
+    if Path::new(&path).exists() {
+        println!("{} already exists.", path);
+        return Ok(());
+    }
     let src = TEMPLATE.replace("%%DAY%%", &format!("{:02}", day));
-    fs::write(format!("./src/bin/day{:02}.rs", day), src)?;
+    fs::write(path, src)?;
     Ok(())
 }
 
