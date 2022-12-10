@@ -16,19 +16,25 @@ fn cpu(input: &str) -> Vec<i64> {
 }
 
 fn part_one(input: &str) -> i64 {
-    let cycles = cpu(input);
-    cycles
-        .iter()
-        .enumerate()
-        .filter_map(|(i, v)| {
-            let c = i + 1; // cycles are 1-indexed
-            if c == 20 || c == 60 || c == 100 || c == 140 || c == 180 || c == 220 {
-                // println!("{}: {:?}", c, v);
-                Some(v * c as i64)
-            } else {
-                None
-            }
-        })
+    // cycles are 1-indexed, signal is 0-indexed.
+    let signal = cpu(input);
+    // Intial solution:
+    // signal
+    //     .iter()
+    //     .enumerate()
+    //     .filter_map(|(i, v)| {
+    //         let c = i + 1;
+    //         if c == 20 || c == 60 || c == 100 || c == 140 || c == 180 || c == 220 {
+    //             // println!("{}: {:?}", c, v);
+    //             Some(v * c as i64)
+    //         } else {
+    //             None
+    //         }
+    //     })
+    //     .sum()
+    (20..221)
+        .step_by(40)
+        .map(|c| c as i64 * signal[c - 1])
         .sum()
 }
 
