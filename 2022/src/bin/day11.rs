@@ -1,158 +1,145 @@
-use std::fmt;
+use std::cell::RefCell;
 
 const _INPUT: &str = include_str!("../../data/input_11.txt");
 const _TEST: &str = include_str!("../../data/test_11.txt");
 
-struct Monkey {
-    items: Vec<u128>,
-    is_mul: bool,
-    arg: Option<u128>,
-    test: u128,
-    true_to: u128,
-    false_to: u128,
-
-    inspected: u128,
+#[derive(Debug)]
+enum Op {
+    Add(i64),
+    Mul(i64),
+    Square,
 }
 
-impl fmt::Debug for Monkey {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("Monkey")
-            .field("items", &self.items)
-            .field("test", &self.test)
-            .finish()
-    }
-}
-
-impl Monkey {
-    fn level(&self, lvl: u128) -> u128 {
-        let arg = if self.arg.is_some() {
-            self.arg.unwrap()
-        } else {
-            lvl
-        };
-        if self.is_mul {
-            lvl * arg
-        } else {
-            lvl + arg
+impl Op {
+    fn call(&self, lvl: i64) -> i64 {
+        match self {
+            Op::Add(n) => lvl + n,
+            Op::Mul(n) => lvl * n,
+            Op::Square => lvl * lvl,
         }
     }
 }
 
-fn parse(input: &str) -> Vec<Monkey> {
-    let mut monkeys: Vec<Monkey> = Vec::new();
+#[derive(Debug)]
+struct Monkey {
+    items: Vec<i64>,
+    op: Op,
+    test: i64,
+
+    true_to: usize,
+    false_to: usize,
+    inspected: usize,
+}
+
+fn parse(input: &str) -> Option<Vec<RefCell<Monkey>>> {
+    let mut monkeys: Vec<RefCell<Monkey>> = Vec::new();
     for lines in input.split("\n\n") {
         let mut iter = lines.lines().skip(1);
         let items = iter
-            .next()
-            .unwrap()
-            .strip_prefix("  Starting items: ")
-            .unwrap()
+            .next()?
+            .strip_prefix("  Starting items: ")?
             .split(", ")
-            .map(|c| c.parse::<u128>().unwrap())
+            .map(|c| c.parse::<i64>().unwrap())
             .collect::<Vec<_>>();
 
-        let (is_mul, arg) = match iter
-            .next()
-            .unwrap()
-            .strip_prefix("  Operation: new = old ")
-            .unwrap()
+        let op = match iter
+            .next()?
+            .strip_prefix("  Operation: new = old ")?
             .split_once(" ")
         {
-            Some(("*", "old")) => (true, None),
+            Some(("*", "old")) => Op::Square,
             Some(("*", n)) => {
-                let n = n.parse::<u128>().unwrap();
-                (true, Some(n))
+                let n = n.parse::<i64>().unwrap();
+                Op::Mul(n)
             }
             Some(("+", n)) => {
-                let n = n.parse::<u128>().unwrap();
-                (false, Some(n))
+                let n = n.parse::<i64>().unwrap();
+                Op::Add(n)
             }
             _ => panic!("bad input"),
         };
 
         let test = iter
-            .next()
-            .unwrap()
-            .strip_prefix("  Test: divisible by ")
-            .unwrap()
-            .parse::<u128>()
-            .unwrap();
+            .next()?
+            .strip_prefix("  Test: divisible by ")?
+            .parse::<i64>()
+            .ok()?;
         let true_to = iter
-            .next()
-            .unwrap()
-            .strip_prefix("    If true: throw to monkey ")
-            .unwrap()
-            .parse::<u128>()
-            .unwrap();
+            .next()?
+            .strip_prefix("    If true: throw to monkey ")?
+            .parse::<_>()
+            .ok()?;
         let false_to = iter
-            .next()
-            .unwrap()
-            .strip_prefix("    If false: throw to monkey ")
-            .unwrap()
-            .parse::<u128>()
-            .unwrap();
-        monkeys.push(Monkey {
+            .next()?
+            .strip_prefix("    If false: throw to monkey ")?
+            .parse::<_>()
+            .ok()?;
+
+        monkeys.push(RefCell::new(Monkey {
             items,
-            is_mul,
-            arg,
+            op,
             test,
             true_to,
             false_to,
             inspected: 0,
-        })
+        }))
     }
-    monkeys
+    Some(monkeys)
 }
 
-fn part_one(input: &str) -> u128 {
-    let mut monkeys = parse(input);
+fn part_one(input: &str) -> usize {
+    let mut monkeys = parse(input).unwrap();
 
     for _ in 0..20 {
-        for i in 0..monkeys.len() {
-            for lvl in &monkeys[i].items.clone() {
-                let lvl = monkeys[i].level(*lvl) / 3;
-
-                let target = if lvl % monkeys[i].test == 0 {
-                    monkeys[i].true_to
+        for m in &monkeys {
+            let mut m = m.borrow_mut();
+            m.inspected += m.items.len();
+            while let Some(lvl) = m.items.pop() {
+                let lvl = m.op.call(lvl) / 3;
+                let target = if lvl % m.test == 0 {
+                    m.true_to
                 } else {
-                    monkeys[i].false_to
+                    m.false_to
                 };
-
-                monkeys[target as usize].items.push(lvl);
+                monkeys[target].borrow_mut().items.push(lvl);
             }
-            monkeys[i].inspected += monkeys[i].items.len() as u128;
-            monkeys[i].items.truncate(0);
         }
     }
 
-    monkeys.sort_by(|a, b| b.inspected.cmp(&a.inspected));
-    monkeys[0].inspected * monkeys[1].inspected
+    monkeys.sort_by(|a, b| b.borrow().inspected.cmp(&a.borrow().inspected));
+    monkeys
+        .iter()
+        .map(|m| m.borrow().inspected)
+        .take(2)
+        .product()
 }
 
-fn part_two(input: &str) -> u128 {
-    let mut monkeys = parse(input);
-    let factor = monkeys.iter().map(|m| m.test).product::<u128>();
+fn part_two(input: &str) -> usize {
+    let mut monkeys = parse(input).unwrap();
+    let factor = monkeys.iter().map(|m| m.borrow().test).product::<i64>();
 
     for _ in 0..10_000 {
-        for i in 0..monkeys.len() {
-            for lvl in &monkeys[i].items.clone() {
-                let lvl = monkeys[i].level(*lvl) % factor;
-
-                let target = if lvl % monkeys[i].test == 0 {
-                    monkeys[i].true_to
+        for m in &monkeys {
+            let mut m = m.borrow_mut();
+            m.inspected += m.items.len();
+            while let Some(lvl) = m.items.pop() {
+                let lvl = m.op.call(lvl) % factor;
+                let target = if lvl % m.test == 0 {
+                    m.true_to
                 } else {
-                    monkeys[i].false_to
+                    m.false_to
                 };
-
-                monkeys[target as usize].items.push(lvl);
+                monkeys[target].borrow_mut().items.push(lvl);
             }
-            monkeys[i].inspected += monkeys[i].items.len() as u128;
-            monkeys[i].items.truncate(0);
         }
     }
 
-    monkeys.sort_by(|a, b| b.inspected.cmp(&a.inspected));
-    monkeys[0].inspected * monkeys[1].inspected
+    monkeys.sort_by(|a, b| b.borrow().inspected.cmp(&a.borrow().inspected));
+    monkeys
+        .iter()
+        .map(|m| m.borrow().inspected)
+        .take(2)
+        .product()
 }
 
 fn main() {
