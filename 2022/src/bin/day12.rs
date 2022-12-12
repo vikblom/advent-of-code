@@ -1,5 +1,4 @@
-use std::cmp::Ordering;
-use std::collections::{BinaryHeap, HashMap, HashSet};
+use std::collections::{HashMap, HashSet, VecDeque};
 
 const _INPUT: &str = include_str!("../../data/input_12.txt");
 
@@ -9,45 +8,23 @@ accszExk
 acctuvwj
 abdefghi";
 
-// State is a part in the search.
-// Implements some traits to play nice with BinaryHeap.
+// Node represents one state in the state space.
 #[derive(Debug)]
-struct State {
-    loc: (i64, i64),
+struct Node {
+    loc: (u16, u16),
     dist: u32,
 }
 
-impl Eq for State {}
-
-// Smallest dist first.
-impl PartialEq for State {
-    fn eq(&self, other: &Self) -> bool {
-        self.dist.eq(&other.dist)
-    }
-}
-
-impl Ord for State {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other.dist.cmp(&self.dist)
-    }
-}
-
-impl PartialOrd for State {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-fn solve(map: &HashMap<(i64, i64), u8>, start: (i64, i64), end: (i64, i64)) -> Option<u32> {
-    let mut seen: HashSet<(i64, i64)> = HashSet::new();
-    let mut next: BinaryHeap<State> = BinaryHeap::new();
-    next.push(State {
+fn solve(map: &HashMap<(u16, u16), u8>, start: (u16, u16), end: (u16, u16)) -> Option<u32> {
+    let mut seen: HashSet<(u16, u16)> = HashSet::new();
+    let mut next = VecDeque::new();
+    next.push_back(Node {
         loc: start,
         dist: 0,
     });
     seen.insert(start);
 
-    while let Some(at) = next.pop() {
+    while let Some(at) = next.pop_front() {
         if at.loc == end {
             return Some(at.dist);
         }
@@ -66,7 +43,7 @@ fn solve(map: &HashMap<(i64, i64), u8>, start: (i64, i64), end: (i64, i64)) -> O
         .for_each(|tmp| {
             if !seen.contains(tmp.0) {
                 seen.insert(*tmp.0);
-                next.push(State {
+                next.push_back(Node {
                     loc: *tmp.0,
                     dist: at.dist + 1,
                 })
@@ -76,41 +53,41 @@ fn solve(map: &HashMap<(i64, i64), u8>, start: (i64, i64), end: (i64, i64)) -> O
     None
 }
 
-fn part_one(input: &str) -> i64 {
-    let mut map: HashMap<(i64, i64), u8> = HashMap::new();
-    let mut start: (i64, i64) = (0, 0);
-    let mut end: (i64, i64) = (0, 0);
+fn part_one(input: &str) -> u16 {
+    let mut map: HashMap<(u16, u16), u8> = HashMap::new();
+    let mut start: (u16, u16) = (0, 0);
+    let mut end: (u16, u16) = (0, 0);
 
     for (i, l) in input.lines().enumerate() {
         for (j, c) in l.as_bytes().iter().enumerate() {
             if *c == b'S' {
-                start = (i as i64, j as i64);
-                map.insert((i as i64, j as i64), b'a');
+                start = (i as u16, j as u16);
+                map.insert((i as u16, j as u16), b'a');
             } else if *c == b'E' {
-                end = (i as i64, j as i64);
-                map.insert((i as i64, j as i64), b'z');
+                end = (i as u16, j as u16);
+                map.insert((i as u16, j as u16), b'z');
             } else {
-                map.insert((i as i64, j as i64), *c);
+                map.insert((i as u16, j as u16), *c);
             }
         }
     }
 
-    solve(&map, start, end).unwrap() as i64
+    solve(&map, start, end).unwrap() as u16
 }
 
-fn part_two(input: &str) -> i64 {
-    let mut map: HashMap<(i64, i64), u8> = HashMap::new();
-    let mut end: (i64, i64) = (0, 0);
+fn part_two(input: &str) -> u16 {
+    let mut map: HashMap<(u16, u16), u8> = HashMap::new();
+    let mut end: (u16, u16) = (0, 0);
 
     for (i, l) in input.lines().enumerate() {
         for (j, c) in l.as_bytes().iter().enumerate() {
             if *c == b'S' {
-                map.insert((i as i64, j as i64), b'a');
+                map.insert((i as u16, j as u16), b'a');
             } else if *c == b'E' {
-                end = (i as i64, j as i64);
-                map.insert((i as i64, j as i64), b'z');
+                end = (i as u16, j as u16);
+                map.insert((i as u16, j as u16), b'z');
             } else {
-                map.insert((i as i64, j as i64), *c);
+                map.insert((i as u16, j as u16), *c);
             }
         }
     }
@@ -119,7 +96,7 @@ fn part_two(input: &str) -> i64 {
         .filter(|&(_, height)| *height == b'a')
         .filter_map(|(loc, _)| solve(&map, *loc, end))
         .min()
-        .unwrap() as i64
+        .unwrap() as u16
 }
 
 fn main() {
