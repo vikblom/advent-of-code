@@ -32,103 +32,118 @@ enum Packet {
     List(Vec<Packet>),
 }
 
-fn descend(chars: &mut Peekable<std::str::Chars>) -> Packet {
-    match chars.next() {
-        Some(c) if '0' <= c && c <= '9' => {
-            let next = *chars.peek().unwrap();
-            if next == '0' {
-                chars.next(); // consume the peek
-                Packet::Int(10)
-            } else {
-                Packet::Int(c.to_digit(10).unwrap())
-            }
-        }
+impl Packet {
+    fn from_str(input: &str) -> Packet {
+        Packet::parse(&mut input.chars().peekable())
+    }
 
-        Some('[') => {
-            let mut list = Vec::new();
-            loop {
-                // Could be empty list.
-                if let Some(&next) = chars.peek() {
-                    if next == ']' {
-                        chars.next(); // consume the peek
+    fn parse(chars: &mut Peekable<std::str::Chars>) -> Packet {
+        match chars.next() {
+            Some(c) if '0' <= c && c <= '9' => {
+                let next = *chars.peek().unwrap();
+                if next == '0' {
+                    chars.next(); // consume the peek
+                    Packet::Int(10)
+                } else {
+                    Packet::Int(c.to_digit(10).unwrap())
+                }
+            }
+
+            Some('[') => {
+                let mut list = Vec::new();
+                loop {
+                    // Could be empty list.
+                    if let Some(&next) = chars.peek() {
+                        if next == ']' {
+                            chars.next(); // consume the peek
+                            break;
+                        }
+                    }
+                    list.push(Packet::parse(chars));
+                    let then = chars.next().unwrap();
+                    if then == ']' {
                         break;
                     }
                 }
-                list.push(descend(chars));
-                let then = chars.next().unwrap();
-                if then == ']' {
-                    break;
-                }
+                Packet::List(list)
             }
-            Packet::List(list)
-        }
-        _ => panic!("unexpected"),
-    }
-}
-
-fn parse(input: &str) -> Packet {
-    descend(&mut input.chars().peekable())
-}
-
-// CORRECT: left less than right
-fn ordered(left: &Packet, right: &Packet) -> Ordering {
-    match (left, right) {
-        (Packet::Int(l), Packet::Int(r)) => l.cmp(r),
-        // Patch types if they are different.
-        (Packet::Int(l), r) => ordered(&Packet::List(vec![Packet::Int(*l)]), r),
-        (l, Packet::Int(r)) => ordered(l, &Packet::List(vec![Packet::Int(*r)])),
-        // Both vectors,
-        (Packet::List(l), Packet::List(r)) => {
-            for (ll, rr) in l.iter().zip(r.iter()) {
-                match ordered(ll, rr) {
-                    Ordering::Less => return Ordering::Less,
-                    Ordering::Greater => return Ordering::Greater,
-                    _ => {} // continue
-                }
-            }
-            // All elements ok, compare length
-            l.len().cmp(&r.len())
+            _ => panic!("unexpected"),
         }
     }
 }
+
+impl Ord for Packet {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match (self, other) {
+            (Packet::Int(l), Packet::Int(r)) => l.cmp(r),
+            // Patch types if they are different.
+            (Packet::Int(l), r) => Packet::cmp(&Packet::List(vec![Packet::Int(*l)]), r),
+            (l, Packet::Int(r)) => Packet::cmp(l, &Packet::List(vec![Packet::Int(*r)])),
+            // Both vectors,
+            (Packet::List(l), Packet::List(r)) => {
+                for (ll, rr) in l.iter().zip(r.iter()) {
+                    match Packet::cmp(ll, rr) {
+                        Ordering::Less => return Ordering::Less,
+                        Ordering::Greater => return Ordering::Greater,
+                        Ordering::Equal => {} // continue
+                    }
+                }
+                // All elements ok, compare length
+                l.len().cmp(&r.len())
+            }
+        }
+    }
+}
+
+impl PartialOrd for Packet {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for Packet {
+    fn eq(&self, other: &Self) -> bool {
+        self.cmp(other) == Ordering::Equal
+    }
+}
+
+impl Eq for Packet {}
 
 fn part_one(input: &str) -> usize {
     let mut score = 0;
     for (i, lr) in input.split("\n\n").enumerate() {
         if let Some((l, r)) = lr.split_once("\n") {
-            let left = parse(l);
-            let right = parse(r);
-
+            let left = Packet::from_str(l);
+            let right = Packet::from_str(r);
             // Pair indexed from 1.
-            if ordered(&left, &right) == Ordering::Less {
+            if left < right {
                 score += i + 1;
             }
         }
     }
-
     score
 }
 
 fn part_two(input: &str) -> usize {
-    let mark1 = parse("[[2]]");
-    let mark2 = parse("[[6]]");
+    let mark1 = Packet::from_str("[[2]]");
+    let mark2 = Packet::from_str("[[6]]");
 
     let mut packs = vec![mark1, mark2];
     for line in input.split("\n") {
         if line == "" {
             continue;
         }
-        packs.push(parse(line));
+        packs.push(Packet::from_str(line));
     }
-    packs.sort_by(|a, b| ordered(a, b));
+    packs.sort();
 
-    let mark1 = parse("[[2]]");
-    let mark2 = parse("[[6]]");
+    let mark1 = Packet::from_str("[[2]]");
+    let mark2 = Packet::from_str("[[6]]");
     packs
         .iter()
         .enumerate()
         .filter_map(|(i, p)| {
-            if ordered(p, &mark1) == Ordering::Equal || ordered(p, &mark2) == Ordering::Equal {
+            if *p == mark1 || *p == mark2 {
                 // Packets indexed from 1.
                 Some(i + 1)
             } else {
