@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 const _INPUT: &str = include_str!("../../data/input_14.txt");
 
@@ -92,37 +92,26 @@ fn part_one(input: &str) -> i64 {
 
 fn part_two(input: &str) -> i64 {
     let mut map = parse(input);
-
     let floor = 2 + map.keys().map(|k| k.1).max().unwrap();
-    // i = 'o' placed counting current loop.
-    for i in 1.. {
-        // draw(&map);
-        let mut sand = (500, 0);
-        loop {
-            if let Some(p) = vec![
-                (sand.0, sand.1 + 1),
-                (sand.0 - 1, sand.1 + 1),
-                (sand.0 + 1, sand.1 + 1),
-            ]
-            .iter()
-            .find(|p| !map.contains_key(p))
-            {
-                sand = *p;
-                if sand.1 == (floor - 1) {
-                    map.insert(sand, b'o');
-                    break;
-                }
-            } else {
-                map.insert(sand, b'o');
-                break;
+
+    let mut queue = VecDeque::new();
+    queue.push_back((500, 0));
+
+    let mut sandcorns = 0;
+    while let Some(sand) = queue.pop_front() {
+        if map.contains_key(&sand) {
+            continue;
+        } else {
+            sandcorns += 1;
+            map.insert(sand, b'o');
+            if sand.1 + 1 < floor {
+                queue.push_back((sand.0, sand.1 + 1));
+                queue.push_back((sand.0 - 1, sand.1 + 1));
+                queue.push_back((sand.0 + 1, sand.1 + 1));
             }
         }
-        if sand == (500, 0) {
-            // backed up
-            return i;
-        }
     }
-    0
+    sandcorns
 }
 
 fn main() {
