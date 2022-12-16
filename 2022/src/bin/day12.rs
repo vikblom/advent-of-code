@@ -1,3 +1,7 @@
+#![feature(test)]
+extern crate core;
+extern crate test;
+
 use std::collections::{HashMap, HashSet, VecDeque};
 
 const _INPUT: &str = include_str!("../../data/input_12.txt");
@@ -123,4 +127,15 @@ fn main() {
 
     println!("part 2 test: {:?}", part_two(_TEST));
     println!("part 2 input: {:?}", part_two(_INPUT));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use test::Bencher;
+
+    #[bench]
+    fn bench_day_12(b: &mut Bencher) {
+        b.iter(|| main());
+    }
 }
