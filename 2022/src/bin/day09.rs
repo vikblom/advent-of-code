@@ -11,7 +11,7 @@ D 10
 L 25
 U 20";
 
-fn draw(n: i32, head: (i32, i32), tail: (i32, i32)) {
+fn _draw(n: i32, head: (i32, i32), tail: (i32, i32)) {
     for i in (0..n).rev() {
         for j in 0..n {
             match (i, j) {
@@ -65,7 +65,7 @@ fn part_one(input: &str) -> i64 {
     seen.len() as i64
 }
 
-fn draw2(n: i32, rope: &Vec<(i32, i32)>) {
+fn _draw2(n: i32, rope: &Vec<(i32, i32)>) {
     for i in (-n..n).rev() {
         'outer: for j in -n..n {
             if (i, j) == rope[0] {

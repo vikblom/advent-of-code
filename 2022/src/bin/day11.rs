@@ -1,7 +1,7 @@
 use std::cell::RefCell;
 
 const _INPUT: &str = include_str!("../../data/input_11.txt");
-const _TEST: &str = include_str!("../../data/test_11.txt");
+//const _TEST: &str = include_str!("../../data/test_11.txt");
 
 #[derive(Debug)]
 enum Op {
@@ -143,9 +143,9 @@ fn part_two(input: &str) -> usize {
 }
 
 fn main() {
-    println!("part 1 test: {:?}", part_one(_TEST));
+    // println!("part 1 test: {:?}", part_one(_TEST));
     println!("part 1 input: {:?}", part_one(_INPUT));
 
-    println!("part 2 test: {}", part_two(_TEST));
+    // println!("part 2 test: {}", part_two(_TEST));
     println!("part 2 input: {}", part_two(_INPUT));
 }

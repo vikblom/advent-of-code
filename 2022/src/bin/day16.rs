@@ -1,10 +1,9 @@
-#![feature(test)]
+// #![feature(test)]
+// extern crate test;
 
 use itertools::Itertools;
 use regex::Regex;
 use std::collections::{HashMap, HashSet, VecDeque};
-
-extern crate test;
 
 const _INPUT: &str = include_str!("../../data/input_16.txt");
 
@@ -239,13 +238,13 @@ fn main() {
     println!("part 2 input: {}", part_two(_INPUT));
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use test::Bencher;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use test::Bencher;
 
-    #[bench]
-    fn bench_part_one(b: &mut Bencher) {
-        b.iter(|| part_one(_INPUT));
-    }
-}
+//     #[bench]
+//     fn bench_part_one(b: &mut Bencher) {
+//         b.iter(|| part_one(_INPUT));
+//     }
+// }

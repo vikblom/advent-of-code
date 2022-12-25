@@ -4,7 +4,7 @@ use regex::Regex;
 
 const _INPUT: &str = include_str!("../../data/input_15.txt");
 
-const _TEST: &str = include_str!("../../data/test_15.txt");
+// const _TEST: &str = include_str!("../../data/test_15.txt");
 
 fn part_one(input: &str, row: i32) -> i64 {
     let re = Regex::new(
@@ -109,9 +109,9 @@ fn part_two(input: &str, n: i32) -> i64 {
 }
 
 fn main() {
-    println!("part 1 test: {}", part_one(_TEST, 10));
+    // println!("part 1 test: {}", part_one(_TEST, 10));
     println!("part 1 input: {}", part_one(_INPUT, 2_000_000));
 
-    println!("part 2 test: {}", part_two(_TEST, 20));
+    // println!("part 2 test: {}", part_two(_TEST, 20));
     println!("part 2 input: {}", part_two(_INPUT, 4_000_000));
 }

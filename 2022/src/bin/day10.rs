@@ -1,9 +1,9 @@
 const _INPUT: &str = include_str!("../../data/input_10.txt");
 
-const _TEST: &str = include_str!("../../data/test_10.txt");
-// const _TEST: &str = "noop
-// addx 3
-// addx -5";
+//const _TEST: &str = include_str!("../../data/test_10.txt");
+const _TEST: &str = "noop
+addx 3
+addx -5";
 
 fn cpu(input: &str) -> Vec<i64> {
     input.lines().fold(vec![1], |mut st, v| {
