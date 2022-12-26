@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use regex::Regex;
 
 const _INPUT: &str = include_str!("../../data/input_15.txt");
@@ -12,9 +10,7 @@ fn part_one(input: &str, row: i32) -> i64 {
     )
     .unwrap();
 
-    let mut deadzone = HashSet::new();
-    let mut busy = HashSet::new();
-
+    let mut pairs = Vec::new();
     for l in input.lines() {
         let capt = re.captures(l).unwrap();
         // x -> right
@@ -23,28 +19,39 @@ fn part_one(input: &str, row: i32) -> i64 {
         let sy = capt[2].parse::<i32>().unwrap();
         let bx = capt[3].parse::<i32>().unwrap();
         let by = capt[4].parse::<i32>().unwrap();
-        // println!("{} {} {} {}", sx, sy, bx, by);
+        let width = (bx - sx).abs() + (by - sy).abs();
 
-        if by == row {
-            busy.insert((by, bx));
+        // reach on relevant row.
+        let reach = width - (row - sy).abs();
+        if reach <= 0 {
+            continue;
         }
 
-        // manhattan distance reach of the "dead zone"
-        let distance = (bx - sx).abs() + (by - sy).abs();
-        // The dead zone will the thinner further up/down from the sensor.
-        // How far away is the line we are interested in.
-        let reach = (row - sy).abs();
+        pairs.push(Pair {
+            sy,
+            sx,
+            // bx,
+            // by,
+            reach,
+        });
+    }
+    // Sort by order of left most edge on the releavnt row.
+    pairs.sort_by(|a, b| (a.sx - a.reach).cmp(&(b.sx - b.reach)));
 
-        let width = distance - reach;
-
-        for i in (sx - width)..=(sx + width) {
-            deadzone.insert(i);
+    let mut covered: Vec<(i32, i32)> = Vec::new();
+    for p in pairs {
+        let (a, b) = (p.sx - p.reach, p.sx + p.reach);
+        match covered.last_mut() {
+            Some(r) if b <= r.1 => (),
+            Some(r) if a <= r.1 && r.1 <= b => r.1 = b,
+            _ => covered.push((a, b)),
         }
     }
 
-    (deadzone.len() - busy.len()) as i64
+    covered.iter().map(|(a, b)| (b - a) as i64).sum::<i64>()
 }
 
+#[derive(Debug, Clone)]
 struct Pair {
     sy: i32,
     sx: i32,
