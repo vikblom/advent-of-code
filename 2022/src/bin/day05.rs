@@ -12,7 +12,7 @@ move 3 from 1 to 3
 move 2 from 2 to 1
 move 1 from 1 to 2";
 
-fn part_one(input: &str) -> i64 {
+fn part_one(input: &str) -> String {
     let (state, moves) = input.split_once("\n\n").unwrap();
 
     let mut iter = state.lines().rev();
@@ -29,9 +29,6 @@ fn part_one(input: &str) -> i64 {
             }
         }
     }
-    for i in 0..n {
-        println!("{:?}", stacks[i]);
-    }
 
     let re = Regex::new(r"^move (\d+) from (\d+) to (\d+)$").unwrap();
     for m in moves.lines() {
@@ -45,21 +42,19 @@ fn part_one(input: &str) -> i64 {
                 if let Some(x) = stacks[from - 1].pop() {
                     stacks[to - 1].push(x);
                 } else {
-                    return 0;
+                    return "".to_string();
                 }
             }
         }
     }
 
-    for i in 0..n {
-        print!("{}", stacks[i].pop().unwrap());
-    }
-    println!("");
-
-    0
+    stacks
+        .iter_mut()
+        .map(|v| v.pop().unwrap())
+        .collect::<String>()
 }
 
-fn part_two(input: &str) -> i64 {
+fn part_two(input: &str) -> String {
     let (state, moves) = input.split_once("\n\n").unwrap();
 
     let mut iter = state.lines().rev();
@@ -91,12 +86,10 @@ fn part_two(input: &str) -> i64 {
         }
     }
 
-    for i in 0..n {
-        print!("{}", stacks[i].pop().unwrap());
-    }
-    println!("");
-
-    0
+    stacks
+        .iter_mut()
+        .map(|v| v.pop().unwrap())
+        .collect::<String>()
 }
 
 fn main() {
@@ -105,4 +98,16 @@ fn main() {
 
     println!("part 2 test: {}", part_two(_TEST));
     println!("part 2 input: {}", part_two(_INPUT));
+}
+
+#[test]
+fn test_05_p1() {
+    assert_eq!(part_one(_TEST), "CMZ");
+    assert_eq!(part_one(_INPUT), "SBPQRSCDF");
+}
+
+#[test]
+fn test_05_p2() {
+    assert_eq!(part_two(_TEST), "MCD");
+    assert_eq!(part_two(_INPUT), "RGLVRCQSB");
 }

@@ -203,3 +203,13 @@ fn main() {
     let dur = start.elapsed();
     println!("alt 2 input: {} ({:.2?})", p2, dur);
 }
+
+#[test]
+fn test_19_p1() {
+    assert_eq!(part_one_alt(_INPUT), 1389);
+}
+
+#[test]
+fn test_19_p2() {
+    assert_eq!(part_two_alt(_INPUT), 3003);
+}

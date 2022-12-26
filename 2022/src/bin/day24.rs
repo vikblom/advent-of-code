@@ -234,12 +234,14 @@ fn main() {
     println!("part 2 input: {}", part_two(_INPUT));
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[test]
+fn test_24_p1() {
+    assert_eq!(part_one(_TEST), 18);
+    assert_eq!(part_one(_INPUT), 297);
+}
 
-    #[test]
-    fn test_part_one() {
-        assert_eq!(part_one(_INPUT), 297);
-    }
+#[test]
+fn test_24_p2() {
+    assert_eq!(part_two(_TEST), 54);
+    assert_eq!(part_two(_INPUT), 856);
 }

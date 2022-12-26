@@ -262,3 +262,13 @@ fn main() {
     println!("part 1 input: {}", part_one(_INPUT));
     println!("part 2 input: {}", part_two(_INPUT));
 }
+
+#[test]
+fn test_22_p1() {
+    assert_eq!(part_one(_INPUT), 122082);
+}
+
+#[test]
+fn test_22_p2() {
+    assert_eq!(part_two(_INPUT), 134076);
+}

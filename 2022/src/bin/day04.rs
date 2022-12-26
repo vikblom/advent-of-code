@@ -74,3 +74,15 @@ fn main() {
     println!("part 2 test: {}", part_two(_TEST));
     println!("part 2 input: {}", part_two(_INPUT));
 }
+
+#[test]
+fn test_04_p1() {
+    assert_eq!(part_one(_TEST), 2);
+    assert_eq!(part_one(_INPUT), 462);
+}
+
+#[test]
+fn test_04_p2() {
+    assert_eq!(part_two(_TEST), 4);
+    assert_eq!(part_two(_INPUT), 835);
+}

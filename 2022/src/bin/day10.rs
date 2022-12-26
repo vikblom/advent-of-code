@@ -38,34 +38,52 @@ fn part_one(input: &str) -> i64 {
         .sum()
 }
 
-fn part_two(input: &str) -> i64 {
+fn part_two(input: &str) -> String {
     let signal = cpu(input);
 
     // reg X is the _horizontal_ pos of the sprite, [0, 40) per row.
     // CRT scans row by row from top left.
     // '#' if sprite (###) overlaps, else '.'
+    let mut out = String::new();
     let mut col = 0;
     for v in signal.iter() {
         if (col as i64 - *v).abs() <= 1 {
-            print!("#");
+            out.push('#');
         } else {
-            print!(".");
+            out.push('.');
         }
 
         col += 1;
         if col == 40 {
             col = 0;
-            println!("");
+            out.push('\n');
         }
     }
 
-    0
+    out
 }
 
 fn main() {
-    println!("part 1 test: {}", part_one(_TEST));
+    // println!("part 1 test: {}", part_one(_TEST));
     println!("part 1 input: {}", part_one(_INPUT));
 
-    println!("part 2 test: {}", part_two(_TEST));
-    println!("part 2 input: {}", part_two(_INPUT));
+    // println!("part 2 test: {}", part_two(_TEST));
+    println!("part 2 input:\n{}", part_two(_INPUT));
+}
+
+#[test]
+fn test_10_p1() {
+    assert_eq!(part_one(_INPUT), 10_760);
+}
+
+#[test]
+fn test_10_p2() {
+    let ans = "####.###...##..###..#..#.####..##..#..#.
+#....#..#.#..#.#..#.#..#.#....#..#.#..#.
+###..#..#.#....#..#.####.###..#....####.
+#....###..#.##.###..#..#.#....#.##.#..#.
+#....#....#..#.#....#..#.#....#..#.#..#.
+#....#.....###.#....#..#.#.....###.#..#.
+.";
+    assert_eq!(part_two(_INPUT), ans);
 }

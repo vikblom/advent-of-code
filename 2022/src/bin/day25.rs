@@ -18,7 +18,7 @@ const _TEST: &str = "1=-0-2
 1=
 122";
 
-fn part_one(input: &str) -> i64 {
+fn part_one(input: &str) -> String {
     let snafu2dec = HashMap::from([('=', -2), ('-', -1), ('0', 0), ('1', 1), ('2', 2)]);
 
     let mut dec: i64 = input
@@ -52,11 +52,16 @@ fn part_one(input: &str) -> i64 {
 
         snafu.push(dec2snafu[this as usize]);
     }
-    println!("{}", snafu.iter().rev().join(""));
-    0
+    snafu.iter().rev().join("")
 }
 
 fn main() {
     println!("part 1 test: {}", part_one(_TEST));
     println!("part 1 input: {}", part_one(_INPUT));
+}
+
+#[test]
+fn test_25_p1() {
+    assert_eq!(part_one(_TEST), "2=-1=0");
+    assert_eq!(part_one(_INPUT), "2-0-020-1==1021=--01");
 }

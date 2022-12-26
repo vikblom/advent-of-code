@@ -12,11 +12,11 @@ abdefghi";
 // Optimization: Fit in 8 bytes.
 #[derive(Debug)]
 struct Node {
-    loc: (u16, u16),
+    loc: (i32, i32),
     dist: u32,
 }
 
-fn parse(input: &str) -> (HashMap<(u16, u16), u8>, (u16, u16), (u16, u16)) {
+fn parse(input: &str) -> (HashMap<(i32, i32), u8>, (i32, i32), (i32, i32)) {
     let mut map = HashMap::new();
     let mut start = (0, 0);
     let mut end = (0, 0);
@@ -24,13 +24,13 @@ fn parse(input: &str) -> (HashMap<(u16, u16), u8>, (u16, u16), (u16, u16)) {
     for (i, l) in input.lines().enumerate() {
         for (j, c) in l.as_bytes().iter().enumerate() {
             if *c == b'S' {
-                start = (i as u16, j as u16);
-                map.insert((i as u16, j as u16), b'a');
+                start = (i as i32, j as i32);
+                map.insert((i as i32, j as i32), b'a');
             } else if *c == b'E' {
-                end = (i as u16, j as u16);
-                map.insert((i as u16, j as u16), b'z');
+                end = (i as i32, j as i32);
+                map.insert((i as i32, j as i32), b'z');
             } else {
-                map.insert((i as u16, j as u16), *c);
+                map.insert((i as i32, j as i32), *c);
             }
         }
     }
@@ -40,7 +40,7 @@ fn parse(input: &str) -> (HashMap<(u16, u16), u8>, (u16, u16), (u16, u16)) {
 fn part_one(input: &str) -> Option<u32> {
     let (map, start, end) = parse(input);
 
-    let mut seen: HashSet<(u16, u16)> = HashSet::new();
+    let mut seen: HashSet<(i32, i32)> = HashSet::new();
     let mut next = VecDeque::new();
     next.push_back(Node {
         loc: start,
@@ -82,7 +82,7 @@ fn part_two(input: &str) -> Option<u32> {
 
     // Flip the search, begin from end and spread out how many moves it takes
     // to reach each nbr. The first 'a' reached is the closest one.
-    let mut seen: HashMap<(u16, u16), u32> = HashMap::new();
+    let mut seen: HashMap<(i32, i32), u32> = HashMap::new();
     let mut next = VecDeque::new();
     next.push_back(Node { loc: end, dist: 0 });
     seen.insert(end, 0);
@@ -123,4 +123,16 @@ fn main() {
 
     println!("part 2 test: {:?}", part_two(_TEST));
     println!("part 2 input: {:?}", part_two(_INPUT));
+}
+
+#[test]
+fn test_12_p1() {
+    assert_eq!(part_one(_TEST), Some(31));
+    assert_eq!(part_one(_INPUT), Some(352));
+}
+
+#[test]
+fn test_12_p2() {
+    assert_eq!(part_two(_TEST), Some(29));
+    assert_eq!(part_two(_INPUT), Some(345));
 }

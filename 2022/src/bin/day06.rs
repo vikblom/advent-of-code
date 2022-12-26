@@ -29,3 +29,15 @@ fn main() {
     println!("part 2 test: {}", part_two(_TEST));
     println!("part 2 input: {}", part_two(_INPUT));
 }
+
+#[test]
+fn test_06_p1() {
+    assert_eq!(part_one(_TEST), 5);
+    assert_eq!(part_one(_INPUT), 1929);
+}
+
+#[test]
+fn test_06_p2() {
+    assert_eq!(part_two(_TEST), 23);
+    assert_eq!(part_two(_INPUT), 3298);
+}
