@@ -37,6 +37,10 @@ impl Packet {
         Packet::parse(&mut input.chars().peekable())
     }
 
+    fn into_list(i: u32) -> Packet {
+        Packet::List(vec![Packet::Int(i)])
+    }
+
     fn parse(chars: &mut Peekable<std::str::Chars>) -> Packet {
         match chars.next() {
             Some(c) if '0' <= c && c <= '9' => {
@@ -52,17 +56,19 @@ impl Packet {
             Some('[') => {
                 let mut list = Vec::new();
                 loop {
-                    // Could be empty list.
+                    // Are we at the end of the list?
                     if let Some(&next) = chars.peek() {
                         if next == ']' {
                             chars.next(); // consume the peek
                             break;
                         }
                     }
+
                     list.push(Packet::parse(chars));
-                    let then = chars.next().unwrap();
-                    if then == ']' {
-                        break;
+
+                    // Eat separator if its there.
+                    if let Some(',') = chars.peek() {
+                        chars.next(); // consume the peek
                     }
                 }
                 Packet::List(list)
@@ -77,8 +83,8 @@ impl Ord for Packet {
         match (self, other) {
             (Packet::Int(l), Packet::Int(r)) => l.cmp(r),
             // Patch types if they are different.
-            (Packet::Int(l), r) => Packet::cmp(&Packet::List(vec![Packet::Int(*l)]), r),
-            (l, Packet::Int(r)) => Packet::cmp(l, &Packet::List(vec![Packet::Int(*r)])),
+            (Packet::Int(l), r) => Packet::into_list(*l).cmp(r),
+            (l, Packet::Int(r)) => l.cmp(&Packet::into_list(*r)),
             // Both vectors,
             (Packet::List(l), Packet::List(r)) => {
                 for (ll, rr) in l.iter().zip(r.iter()) {
