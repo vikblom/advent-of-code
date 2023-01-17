@@ -10,7 +10,7 @@ stdenv.mkDerivation {
   ];
   buildInputs = [
     # Example Run-time Additional Dependencies
-    openssl
+    stdenv openssl pkgconfig cargo rustc rustup freetype
   ];
 
   # Set Environment Variables
