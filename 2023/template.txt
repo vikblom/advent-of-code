@@ -1,0 +1,34 @@
+package solve
+
+import (
+	"bufio"
+	"bytes"
+	"testing"
+
+	_ "embed"
+
+	aoc "gitlab.com/vikblom/advent-of-code"
+)
+
+var (
+
+	//go:embed "input.txt"
+	raw      []byte
+	rawLines = bytes.Split(bytes.TrimRight(raw, "\n"), []byte{'\n'})
+
+	//go:embed "input.txt"
+	input      string
+	inputLines = strings.Split(strings.TrimRight(input, "\n"), "\n")
+)
+
+func TestPartOne(t *testing.T) {
+	ans := 0
+
+    aoc.Answer(ans)
+}
+
+func TestPartTwo(t *testing.T) {
+	ans := 0
+
+    aoc.Answer(ans)
+}

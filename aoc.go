@@ -6,9 +6,25 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reflect"
 	"strconv"
 	"strings"
 )
+
+func Answer(got any, want ...any) {
+	fmt.Println()
+	defer fmt.Println()
+	if len(want) == 0 {
+		fmt.Printf("ANSWER: got %v\n", got)
+		return
+	}
+
+	if !reflect.DeepEqual(got, want[0]) {
+		fmt.Printf("INCORRECT: got %v != want %v\n", got, want)
+		return
+	}
+	fmt.Printf("CORRECT: got %v == want %v\n", got, want)
+}
 
 func ScanCSV(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
@@ -173,4 +189,8 @@ func AbsInt(a int) int {
 		return -a
 	}
 	return a
+}
+
+func Scanner(bs []byte) *bufio.Scanner {
+	return bufio.NewScanner(bytes.NewReader(bs))
 }
