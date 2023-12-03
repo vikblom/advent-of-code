@@ -2,3 +2,8 @@
 env.*
 target
 .envrc
+
+# Ignore previous years.
+2020
+2021
+2022

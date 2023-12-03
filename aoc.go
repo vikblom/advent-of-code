@@ -84,15 +84,15 @@ func ReadInts(rdr io.Reader) ([]int, error) {
 }
 
 type Matrix[T any] struct {
-	rows int
-	cols int
+	Rows int
+	Cols int
 	data []T // row major
 }
 
 func NewMatrix[T any](rows, cols int) Matrix[T] {
 	return Matrix[T]{
-		rows: rows,
-		cols: cols,
+		Rows: rows,
+		Cols: cols,
 		data: make([]T, rows*cols),
 	}
 }
@@ -110,33 +110,33 @@ func IntSqrt(n int) int {
 func ToMatrix[T any](data []T, rows, cols int) Matrix[T] {
 	return Matrix[T]{
 		data: data,
-		rows: rows,
-		cols: cols,
+		Rows: rows,
+		Cols: cols,
 	}
 }
 
 func (m Matrix[T]) At(row, col int) T {
-	index := row*m.cols + col
+	index := row*m.Cols + col
 	return m.data[index]
 }
 
 func (m Matrix[T]) Set(row, col int, val T) {
-	index := row*m.cols + col
+	index := row*m.Cols + col
 	m.data[index] = val
 }
 
 func (m Matrix[T]) Width() int {
-	return m.cols
+	return m.Cols
 }
 
 func (m Matrix[T]) Height() int {
-	return m.rows
+	return m.Rows
 }
 
 func (m Matrix[T]) String() string {
 	var s strings.Builder
 	for i, v := range m.data {
-		if i > 0 && i%m.cols == 0 {
+		if i > 0 && i%m.Cols == 0 {
 			fmt.Fprintf(&s, "\n")
 		}
 		// Trick the switch into accepting a generic.
@@ -165,14 +165,14 @@ func (m Matrix[T]) Neighbours(row, col int) []XY {
 	if row > 0 {
 		nbrs = append(nbrs, XY{row - 1, col})
 	}
-	if row < (m.rows - 1) {
+	if row < (m.Rows - 1) {
 		nbrs = append(nbrs, XY{row + 1, col})
 	}
 
 	if col > 0 {
 		nbrs = append(nbrs, XY{row, col - 1})
 	}
-	if col < (m.cols - 1) {
+	if col < (m.Cols - 1) {
 		nbrs = append(nbrs, XY{row, col + 1})
 	}
 	return nbrs
