@@ -10,7 +10,7 @@ import (
 
 const FILE = "input.txt"
 
-func readInput() (aoc.Matrix, error) {
+func readInput() (aoc.Matrix[int], error) {
 	input, err := os.ReadFile(FILE)
 	if err != nil {
 		log.Fatal(err)
@@ -28,7 +28,7 @@ func readInput() (aoc.Matrix, error) {
 	return aoc.ToMatrix(data, rows, len(data)/rows), nil
 }
 
-func Step(karta aoc.Matrix) {
+func Step(karta aoc.Matrix[int]) {
 
 	// >
 	move := [][2]int{}
@@ -72,7 +72,7 @@ func Step(karta aoc.Matrix) {
 	}
 }
 
-func SolvePartOne(karta aoc.Matrix) int {
+func SolvePartOne(karta aoc.Matrix[int]) int {
 
 	this := karta.String()
 	steps := 0

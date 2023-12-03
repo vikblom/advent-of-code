@@ -20,10 +20,18 @@ func Answer(got any, want ...any) {
 	}
 
 	if !reflect.DeepEqual(got, want[0]) {
-		fmt.Printf("INCORRECT: got %v != want %v\n", got, want)
+		fmt.Printf("INCORRECT: got %v != want %v\n", got, want[0])
 		return
 	}
-	fmt.Printf("CORRECT: got %v == want %v\n", got, want)
+	fmt.Printf("CORRECT: got %v == want %v\n", got, want[0])
+}
+
+func MustInt(s string) int {
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	return i
 }
 
 func ScanCSV(data []byte, atEOF bool) (advance int, token []byte, err error) {
@@ -75,17 +83,17 @@ func ReadInts(rdr io.Reader) ([]int, error) {
 	return data, nil
 }
 
-type Matrix struct {
+type Matrix[T any] struct {
 	rows int
 	cols int
-	data []int // row major
+	data []T // row major
 }
 
-func NewMatrix(rows, cols int) Matrix {
-	return Matrix{
+func NewMatrix[T any](rows, cols int) Matrix[T] {
+	return Matrix[T]{
 		rows: rows,
 		cols: cols,
-		data: make([]int, rows*cols),
+		data: make([]T, rows*cols),
 	}
 }
 
@@ -99,35 +107,52 @@ func IntSqrt(n int) int {
 	return x
 }
 
-func ToMatrix(data []int, rows, cols int) Matrix {
-	return Matrix{
+func ToMatrix[T any](data []T, rows, cols int) Matrix[T] {
+	return Matrix[T]{
 		data: data,
 		rows: rows,
 		cols: cols,
 	}
 }
 
-func (m Matrix) Width() int {
+func (m Matrix[T]) At(row, col int) T {
+	index := row*m.cols + col
+	return m.data[index]
+}
+
+func (m Matrix[T]) Set(row, col int, val T) {
+	index := row*m.cols + col
+	m.data[index] = val
+}
+
+func (m Matrix[T]) Width() int {
 	return m.cols
 }
 
-func (m Matrix) Height() int {
+func (m Matrix[T]) Height() int {
 	return m.rows
 }
 
-func (m Matrix) String() string {
+func (m Matrix[T]) String() string {
 	var s strings.Builder
 	for i, v := range m.data {
 		if i > 0 && i%m.cols == 0 {
 			fmt.Fprintf(&s, "\n")
 		}
-		if v > 0 {
-			fmt.Fprintf(&s, "%v", v)
-		} else {
-			fmt.Fprintf(&s, ".")
+		// Trick the switch into accepting a generic.
+		switch vv := any(v).(type) {
+		case byte:
+			fmt.Fprintf(&s, "%c", vv)
+		default:
+			fmt.Fprintf(&s, "%v", vv)
 		}
 	}
 	return s.String()
+}
+
+func zero[T any]() T {
+	z := new(T)
+	return *z
 }
 
 type XY struct {
@@ -135,7 +160,7 @@ type XY struct {
 	Y int
 }
 
-func (m Matrix) Neighbours(row, col int) []XY {
+func (m Matrix[T]) Neighbours(row, col int) []XY {
 	nbrs := []XY{}
 	if row > 0 {
 		nbrs = append(nbrs, XY{row - 1, col})
@@ -153,20 +178,20 @@ func (m Matrix) Neighbours(row, col int) []XY {
 	return nbrs
 }
 
-func (m Matrix) At(row, col int) int {
-	index := row*m.cols + col
-	return m.data[index]
+func (m Matrix[T]) Nbrs8(row, col int) []XY {
+	nbrs := []XY{}
+	for i := max(row-1, 0); i < min(row+2, m.Height()); i++ {
+		for j := max(col-1, 0); j < min(col+2, m.Width()); j++ {
+			nbrs = append(nbrs, XY{X: i, Y: j})
+		}
+	}
+	return nbrs
 }
 
-func (m Matrix) Set(row, col, val int) {
-	index := row*m.cols + col
-	m.data[index] = val
-}
-
-func (m Matrix) Increment(row, col int) {
-	index := row*m.cols + col
-	m.data[index]++
-}
+// func (m Matrix) Increment(row, col int) {
+// 	index := row*m.cols + col
+// 	m.data[index]++
+// }
 
 func MaxInt(a, b int) int {
 	if a > b {

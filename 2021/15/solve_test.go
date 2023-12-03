@@ -11,7 +11,7 @@ import (
 
 const FILE = "input.txt"
 
-func readInput() (aoc.Matrix, error) {
+func readInput() (aoc.Matrix[int], error) {
 	input, err := os.ReadFile(FILE)
 	if err != nil {
 		log.Fatal(err)
@@ -73,7 +73,7 @@ func (pq *PosQueue) update(item *Pos, risk int) {
 	heap.Fix(pq, item.index)
 }
 
-func RiskAcross(cave aoc.Matrix) int {
+func RiskAcross(cave aoc.Matrix[int]) int {
 	queue := make(PosQueue, 1)
 	queue[0] = &Pos{
 		x:    0,
@@ -117,8 +117,8 @@ func TestPartOne(t *testing.T) {
 	log.Println("Part 1:", RiskAcross(cave))
 }
 
-func Repeat(small aoc.Matrix, n int) aoc.Matrix {
-	big := aoc.NewMatrix(n*small.Width(), n*small.Height())
+func Repeat(small aoc.Matrix[int], n int) aoc.Matrix[int] {
+	big := aoc.NewMatrix[int](n*small.Width(), n*small.Height())
 
 	for across := 0; across < n; across++ {
 		for down := 0; down < n; down++ {

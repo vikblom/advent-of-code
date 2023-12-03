@@ -1,9 +1,9 @@
 package solve
 
 import (
-	"bufio"
 	"bytes"
 	"testing"
+	"strings"
 
 	_ "embed"
 
