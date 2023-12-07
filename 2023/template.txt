@@ -5,9 +5,9 @@ import (
 	"testing"
 	"strings"
 
-	_ "embed"
-
 	aoc "gitlab.com/vikblom/advent-of-code"
+
+	_ "embed"
 )
 
 var (
@@ -23,11 +23,11 @@ var (
 func TestPartOne(t *testing.T) {
 	ans := 0
 
-    aoc.Answer(ans)
+    aoc.Answer(t, ans)
 }
 
 func TestPartTwo(t *testing.T) {
 	ans := 0
 
-    aoc.Answer(ans)
+    aoc.Answer(t, ans)
 }

@@ -41,7 +41,7 @@ func TestPartOne(t *testing.T) {
 		}
 		sum += c
 	}
-	aoc.Answer(sum, 54968)
+	aoc.Answer(t, sum, 54968)
 }
 
 var digits2 = map[string]string{
@@ -99,5 +99,5 @@ func TestPartTwo(t *testing.T) {
 		}
 		sum += c
 	}
-	aoc.Answer(sum, 54094)
+	aoc.Answer(t, sum, 54094)
 }

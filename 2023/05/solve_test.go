@@ -65,7 +65,7 @@ func TestPartOne(t *testing.T) {
 	for _, s := range seeds {
 		ans = min(ans, Chain(chain, s))
 	}
-	aoc.Answer(ans, 579439039)
+	aoc.Answer(t, ans, 579439039)
 }
 
 func TestPartTwo(t *testing.T) {
@@ -120,7 +120,7 @@ func TestPartTwo(t *testing.T) {
 	for _, v := range out {
 		ans = min(ans, v)
 	}
-	aoc.Answer(ans, 7873084)
+	aoc.Answer(t, ans, 7873084)
 }
 
 type Interval struct {
@@ -229,5 +229,5 @@ func TestPartTwoRanges(t *testing.T) {
 	}
 
 	slices.SortFunc(seeds, func(a, b Interval) int { return a.start - b.start })
-	aoc.Answer(seeds[0].start, 7873084)
+	aoc.Answer(t, seeds[0].start, 7873084)
 }

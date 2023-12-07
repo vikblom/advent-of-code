@@ -54,7 +54,7 @@ nextgame:
 		sum += id
 	}
 
-	aoc.Answer(sum, 2283)
+	aoc.Answer(t, sum, 2283)
 }
 
 func TestPartTwo(t *testing.T) {
@@ -84,5 +84,5 @@ func TestPartTwo(t *testing.T) {
 		sum += pow
 	}
 
-	aoc.Answer(sum, 78669)
+	aoc.Answer(t, sum, 78669)
 }

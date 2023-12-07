@@ -49,7 +49,7 @@ func TestPartOne(t *testing.T) {
 		}
 	}
 
-	aoc.Answer(sum, 537832)
+	aoc.Answer(t, sum, 537832)
 }
 
 func TestPartTwo(t *testing.T) {
@@ -96,5 +96,5 @@ func TestPartTwo(t *testing.T) {
 			sum += v[0] * v[1]
 		}
 	}
-	aoc.Answer(sum, 81939900)
+	aoc.Answer(t, sum, 81939900)
 }

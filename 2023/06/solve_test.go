@@ -41,7 +41,7 @@ func TestPartOne(t *testing.T) {
 		ans *= wins
 	}
 
-	aoc.Answer(ans, 138915)
+	aoc.Answer(t, ans, 138915)
 }
 
 func TestPartTwo(t *testing.T) {
@@ -61,5 +61,5 @@ func TestPartTwo(t *testing.T) {
 		ans *= wins
 	}
 
-	aoc.Answer(ans, 27340847)
+	aoc.Answer(t, ans, 27340847)
 }

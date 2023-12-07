@@ -133,7 +133,7 @@ func TestPartOne(t *testing.T) {
 		ans += rank * h.bid
 	}
 
-	aoc.Answer(ans, 256448566)
+	aoc.Answer(t, ans, 256448566)
 }
 
 func EstimateHand2(hand []Card) Strength {
@@ -214,5 +214,5 @@ func TestPartTwo(t *testing.T) {
 		ans += rank * h.bid
 	}
 
-	aoc.Answer(ans, 254412181)
+	aoc.Answer(t, ans, 254412181)
 }

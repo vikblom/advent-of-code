@@ -39,7 +39,7 @@ func TestPartOne(t *testing.T) {
 		}
 	}
 
-	aoc.Answer(sum, 23847)
+	aoc.Answer(t, sum, 23847)
 }
 
 func TestPartTwo(t *testing.T) {
@@ -72,5 +72,5 @@ func TestPartTwo(t *testing.T) {
 	for _, c := range cards {
 		sum += c
 	}
-	aoc.Answer(sum, 8570000)
+	aoc.Answer(t, sum, 8570000)
 }

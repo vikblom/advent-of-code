@@ -9,21 +9,22 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"testing"
 )
 
-func Answer(got any, want ...any) {
-	fmt.Println()
-	defer fmt.Println()
+func Answer(t *testing.T, got any, want ...any) {
+	t.Helper()
+
 	if len(want) == 0 {
-		fmt.Printf("ANSWER: got %v\n", got)
+		t.Errorf("ANSWER: got %v\n", got)
 		return
 	}
 
 	if !reflect.DeepEqual(got, want[0]) {
-		fmt.Printf("INCORRECT: got %v != want %v\n", got, want[0])
+		t.Errorf("INCORRECT: got %v != want %v\n", got, want[0])
 		return
 	}
-	fmt.Printf("CORRECT: got %v == want %v\n", got, want[0])
+	t.Logf("CORRECT: got %v == want %v\n", got, want[0])
 }
 
 func MustInt(s string) int {
