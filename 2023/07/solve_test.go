@@ -20,7 +20,7 @@ var (
 type Hand struct {
 	strength Strength
 	bid      int
-	raw      string
+	raw      []byte
 }
 
 type Card struct {
@@ -45,26 +45,24 @@ const (
 )
 
 func EstimateHand(hand []Card) Strength {
-	// Switch on many _kinds_ of cards are in our hand.
+	// Switch on how many we have of the most common card.
 	slices.SortFunc(hand, func(a, b Card) int { return b.count - a.count })
-	switch len(hand) {
-	case 1:
+	switch hand[0].count {
+	case 5:
 		return FiveKind
-	case 2:
-		if hand[0].count == 4 {
-			return FourKind
-		} else {
+	case 4:
+		return FourKind
+	case 3:
+		if hand[1].count == 2 {
 			return FullHouse
 		}
-	case 3:
-		if hand[0].count == 3 {
-			return ThreeKind
-		} else {
+		return ThreeKind
+	case 2:
+		if hand[1].count == 2 {
 			return TwoPair
 		}
-	case 4:
 		return Pair
-	case 5:
+	case 1:
 		return HighCard
 	default:
 		panic("bad hand")
@@ -72,20 +70,7 @@ func EstimateHand(hand []Card) Strength {
 }
 
 func Power(c byte) int {
-	switch c {
-	case 'A':
-		return 14
-	case 'K':
-		return 13
-	case 'Q':
-		return 12
-	case 'J':
-		return 11
-	case 'T':
-		return 10
-	default:
-		return aoc.MustInt(string(c))
-	}
+	return strings.IndexByte("123456789TJQKA", c)
 }
 
 func TestPartOne(t *testing.T) {
@@ -105,7 +90,7 @@ func TestPartOne(t *testing.T) {
 		hands = append(hands, Hand{
 			strength: EstimateHand(hand),
 			bid:      aoc.MustInt(bid),
-			raw:      cards,
+			raw:      []byte(cards),
 		})
 	}
 
@@ -114,15 +99,10 @@ func TestPartOne(t *testing.T) {
 		if d != 0 {
 			return int(d)
 		}
-		for i := 0; i < 5; i++ {
-			a := Power(a.raw[i])
-			b := Power(b.raw[i])
-			if a != b {
-				return a - b
-			}
-		}
-
-		return 0
+		// Tiebreaker
+		return slices.CompareFunc(a.raw, b.raw, func(a, b byte) int {
+			return Power(a) - Power(b)
+		})
 	})
 
 	ans := 0
@@ -156,7 +136,7 @@ func EstimateHand2(hand []Card) Strength {
 		hand[0].count += joker.count
 	} else {
 		// If we only had jokers, replace them with aces.
-		hand = []Card{{face: 'A', count: joker.count}}
+		return FiveKind
 	}
 
 	return EstimateHand(hand)
@@ -186,7 +166,7 @@ func TestPartTwo(t *testing.T) {
 		hands = append(hands, Hand{
 			strength: EstimateHand2(hand),
 			bid:      aoc.MustInt(bid),
-			raw:      cards,
+			raw:      []byte(cards),
 		})
 	}
 
@@ -195,15 +175,10 @@ func TestPartTwo(t *testing.T) {
 		if d != 0 {
 			return int(d)
 		}
-		for i := 0; i < 5; i++ {
-			a := Power2(a.raw[i])
-			b := Power2(b.raw[i])
-			if a != b {
-				return a - b
-			}
-		}
-
-		return 0
+		// Tiebreaker.
+		return slices.CompareFunc(a.raw, b.raw, func(a, b byte) int {
+			return Power2(a) - Power2(b)
+		})
 	})
 
 	ans := 0
