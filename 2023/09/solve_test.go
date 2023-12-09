@@ -1,6 +1,7 @@
 package solve
 
 import (
+	"slices"
 	"strings"
 	"testing"
 
@@ -37,66 +38,36 @@ func allZero(xs []int) bool {
 	return true
 }
 
-func recur(xs []int) int {
+// Recursive approach like /u/gemdude46.
+func extrapolate(xs []int) int {
 	if allZero(xs) {
 		return 0
 	}
-	return xs[len(xs)-1] + recur(delta(xs))
+	return xs[len(xs)-1] + extrapolate(delta(xs))
 }
 
 func TestPartOne(t *testing.T) {
 	ans := 0
-
 	for _, line := range inputLines {
 		is := []int{}
 		for _, f := range strings.Fields(line) {
 			is = append(is, aoc.MustInt(f))
 		}
-
-		stack := [][]int{is}
-		for !allZero(stack[len(stack)-1]) {
-			stack = append(stack, delta(stack[len(stack)-1]))
-		}
-
-		s := 0
-		for i := len(stack) - 1; i >= 0; i-- {
-			//  x   ?
-			//    s
-			//
-			// -> s = s + x
-			s += stack[i][len(stack[i])-1]
-		}
-		ans += s
+		ans += extrapolate(is)
 	}
-
 	aoc.Answer(t, ans, 1987402313)
 }
 
 func TestPartTwo(t *testing.T) {
 	ans := 0
-
 	for _, line := range inputLines {
 		strings.Fields(line)
 		is := []int{}
 		for _, f := range strings.Fields(line) {
 			is = append(is, aoc.MustInt(f))
 		}
-
-		stack := [][]int{is}
-		for !allZero(stack[len(stack)-1]) {
-			stack = append(stack, delta(stack[len(stack)-1]))
-		}
-
-		s := 0
-		for i := len(stack) - 1; i >= 0; i-- {
-			// ?   x
-			//   s
-			//
-			// -> s = x - s
-			s = stack[i][0] - s
-		}
-		ans += s
+		slices.Reverse(is)
+		ans += extrapolate(is)
 	}
-
 	aoc.Answer(t, ans, 900)
 }
