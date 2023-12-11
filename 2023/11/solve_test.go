@@ -28,17 +28,21 @@ func bounding(stars map[XY]bool) (int, int) {
 	return row + 1, col + 1
 }
 
-func expandRows(stars map[XY]bool, factor int) {
+func expand(stars map[XY]bool, factor int) {
 	rows, cols := bounding(stars)
 	delta := factor - 1
-skip:
-	for r := rows; r >= 0; r-- {
-		for c := 0; c < cols; c++ {
-			if stars[XY{r, c}] {
-				continue skip
-			}
+
+	rowsWithStars := make([]bool, rows)
+	colsWithStars := make([]bool, rows)
+	for s := range stars {
+		rowsWithStars[s.X] = true
+		colsWithStars[s.Y] = true
+	}
+
+	for r := rows - 1; r >= 0; r-- {
+		if rowsWithStars[r] {
+			continue
 		}
-		// Expand
 		for k, v := range maps.Clone(stars) {
 			if k.X > r {
 				delete(stars, k)
@@ -46,26 +50,17 @@ skip:
 			}
 		}
 	}
-}
 
-func expandCols(stars map[XY]bool, factor int) {
-	rows, cols := bounding(stars)
-	delta := factor - 1
-skip:
-	for c := cols; c >= 0; c-- {
-		for r := 0; r < rows; r++ {
-			if stars[XY{r, c}] {
-				continue skip
-			}
+	for c := cols - 1; c >= 0; c-- {
+		if colsWithStars[c] {
+			continue
 		}
-		// Expand
 		for k, v := range maps.Clone(stars) {
 			if k.Y > c {
 				delete(stars, k)
 				stars[XY{k.X, k.Y + delta}] = v
 			}
 		}
-		cols += delta
 	}
 }
 
@@ -78,8 +73,7 @@ func TestPartOne(t *testing.T) {
 			}
 		}
 	}
-	expandRows(stars, 2)
-	expandCols(stars, 2)
+	expand(stars, 2)
 
 	stars2 := []XY{}
 	for s := range stars {
@@ -116,10 +110,7 @@ func TestPartTwo(t *testing.T) {
 		}
 	}
 
-	expandRows(stars, 1_000_000)
-	// NOTE: The second dimention has to churn all the 1e6 empty spaces
-	// which is a waste of time when we know they are empty.
-	expandCols(stars, 1_000_000)
+	expand(stars, 1_000_000)
 
 	stars2 := []XY{}
 	for s := range stars {
