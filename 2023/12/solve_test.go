@@ -1,9 +1,7 @@
 package solve
 
 import (
-	"encoding/binary"
 	"fmt"
-	"hash/fnv"
 	"strings"
 	"testing"
 
@@ -28,34 +26,13 @@ func fits(s string, size int) (ret bool) {
 	return (size == len(s)) || s[size] != '#'
 }
 
-var (
-	hasher = fnv.New64()
-	buf    = make([]byte, 0, 512)
-)
-
-// Go cannot hash a slice, and building strings as keys
-// is expensive, so we hash it ourselves.
-// This will however be hashed again by the map.
-func hash(s string, vs []int) uint64 {
-	defer hasher.Reset()
-	defer func() {
-		hasher.Reset()
-		buf = buf[:0]
-	}()
-
-	buf = append(buf, []byte(s)...)
-	for _, v := range vs {
-		buf = binary.BigEndian.AppendUint64(buf, uint64(v))
-	}
-	hasher.Write(buf)
-	return hasher.Sum64()
-}
-
-var mem = map[uint64]int{}
+var mem = map[int]int{}
 
 func combos(springs string, groups []int) (ret int) {
-	// Memoized.
-	key := hash(springs, groups)
+	// Memoized each individual row.
+	// The loss of caching between rows is insignificant.
+	// And then the length of strings and groups uniquely decides state.
+	key := len(springs)<<32 + len(groups)
 	if ans, ok := mem[key]; ok {
 		return ans
 	}
@@ -96,9 +73,8 @@ func TestPartOne(t *testing.T) {
 		for _, c := range strings.Split(rest, ",") {
 			groups = append(groups, aoc.MustInt(c))
 		}
-		c := combos(springs, groups)
-		t.Logf("%v %v %d\n", springs, groups, c)
-		ans += c
+		mem = map[int]int{}
+		ans += combos(springs, groups)
 	}
 	aoc.Answer(t, ans, 6827)
 }
@@ -115,6 +91,7 @@ func TestPartTwo(t *testing.T) {
 
 		springs = fmt.Sprintf("%s?%s?%s?%s?%s", springs, springs, springs, springs, springs)
 
+		mem = map[int]int{}
 		ans += combos(springs, groups)
 	}
 
