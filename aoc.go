@@ -98,6 +98,12 @@ func NewMatrix[T any](rows, cols int) Matrix[T] {
 	}
 }
 
+func ParseMatrix(s string) Matrix[byte] {
+	cols := strings.Index(s, "\n")
+	data := strings.ReplaceAll(s, "\n", "")
+	return ToMatrix([]byte(data), len(data)/cols, cols)
+}
+
 func IntSqrt(n int) int {
 	x := n
 	y := 1
