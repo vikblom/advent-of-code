@@ -1,6 +1,7 @@
 package solve
 
 import (
+	"hash/fnv"
 	"testing"
 
 	aoc "gitlab.com/vikblom/advent-of-code"
@@ -108,11 +109,17 @@ func TestPartOne(t *testing.T) {
 	aoc.Answer(t, ans, 107430)
 }
 
+func hash(m aoc.Matrix[byte]) uint64 {
+	hasher := fnv.New64()
+	hasher.Write(m.Slice())
+	return hasher.Sum64()
+}
+
 func TestPartTwo(t *testing.T) {
 	m := aoc.ParseMatrix(input)
 
 	cycles := 1_000_000_000
-	seen := map[string]int{}
+	seen := map[uint64]int{}
 	for n := 0; n < cycles; n++ {
 		for dir := 0; dir < 4; dir++ {
 			// The shifts assume we're iterating in a certain order.
@@ -158,13 +165,13 @@ func TestPartTwo(t *testing.T) {
 			}
 		}
 
-		if prev, ok := seen[m.String()]; ok {
+		if prev, ok := seen[hash(m)]; ok {
 			// We've been here before, so short circuit the loop by
 			// subtracting however many whole periods we can
 			// fit in whatever is left.
 			cycles = n + (cycles-prev)%(n-prev)
 		} else {
-			seen[m.String()] = n
+			seen[hash(m)] = n
 		}
 	}
 

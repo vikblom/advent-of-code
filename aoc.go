@@ -127,6 +127,10 @@ func (m Matrix[T]) At(row, col int) T {
 	return m.data[index]
 }
 
+func (m Matrix[T]) Slice() []T {
+	return m.data
+}
+
 func (m Matrix[T]) Set(row, col int, val T) {
 	index := row*m.Cols + col
 	m.data[index] = val
