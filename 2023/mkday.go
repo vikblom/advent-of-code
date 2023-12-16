@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -10,6 +12,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"time"
 
 	_ "embed"
 )
@@ -22,7 +25,6 @@ var template string
 
 // aocGetRequest puts in the correct cookies to talk with AoC.
 func aocGetRequest(path, session string) (*http.Response, error) {
-
 	url := &url.URL{
 		Scheme: "https",
 		Host:   "adventofcode.com",
@@ -69,7 +71,41 @@ func WriteInput(day int, dir, session string) error {
 	return nil
 }
 
+func WriteExample(day int, dir, session string) error {
+	resp, err := aocGetRequest(path.Join(YEAR, "day", strconv.Itoa(day)), session)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	bs, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	_, bs, ok := bytes.Cut(bs, []byte(`For example:</p>
+<pre><code>`))
+	if !ok {
+		return nil
+	}
+	bs, _, ok = bytes.Cut(bs, []byte(`</code></pre>`))
+	if !ok {
+		return nil
+	}
+
+	err = os.WriteFile(path.Join(dir, "example.txt"), bs, 0644)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Wrote example:\n%s", bs)
+
+	return nil
+}
+
 func WriteSolutionTemplate(path string) error {
+	if _, err := os.Stat(path); !errors.Is(err, os.ErrNotExist) {
+		return nil
+	}
 	return os.WriteFile(path, []byte(template), 0644)
 }
 
@@ -92,7 +128,8 @@ func main() {
 
 	// New directory
 	dir := fmt.Sprintf("%02d", day)
-	if err := os.Mkdir(dir, 0755); err != nil {
+	err = os.Mkdir(dir, 0755)
+	if err != nil && !errors.Is(err, os.ErrExist) {
 		log.Fatal(err)
 	}
 
@@ -102,8 +139,19 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if !time.Now().After(time.Date(2023, 12, int(day), 0, 0, 0, 0, time.UTC)) {
+		fmt.Println("Not time yet, skipping input/example txt.")
+		return
+	}
+
 	// Get the input
 	err = WriteInput(int(day), dir, session)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Maybe get the example
+	err = WriteExample(int(day), dir, session)
 	if err != nil {
 		log.Fatal(err)
 	}
