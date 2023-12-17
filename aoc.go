@@ -144,6 +144,10 @@ func (m Matrix[T]) Height() int {
 	return m.Rows
 }
 
+func (m Matrix[T]) Inbounds(x, y int) bool {
+	return 0 <= x && x < m.Rows && 0 <= y && y < m.Cols
+}
+
 func (m Matrix[T]) String() string {
 	var s strings.Builder
 	for i, v := range m.data {
