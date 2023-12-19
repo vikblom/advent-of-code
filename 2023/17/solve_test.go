@@ -27,9 +27,22 @@ var (
 // state can be used in hashmaps.
 type State1 [4]aoc.XY
 
+// hash packs all 4 x,y pairs into a uint.
+// Since dimensions are 140x140 it fits in one byte each.
+func (s *State1) hash() uint {
+	return uint(
+		s[0].X + s[0].Y<<8 +
+			s[1].X<<16 + s[1].Y<<24 +
+			s[2].X<<32 + s[2].Y<<40 +
+			s[3].X<<48 + s[3].Y<<56,
+	)
+}
+
 func Dist(a, b aoc.XY) int {
 	return max(aoc.AbsInt(a.X-b.X), aoc.AbsInt(a.Y-b.Y))
 }
+
+var nbr4delta = []aoc.XY{{X: -1, Y: 0}, {X: 1, Y: 0}, {X: 0, Y: -1}, {X: 0, Y: 1}}
 
 func TestPartOne(t *testing.T) {
 	raw := aoc.ParseMatrix(input)
@@ -43,7 +56,7 @@ func TestPartOne(t *testing.T) {
 	q := aoc.NewQueue[State1]()
 	// Start is all zero.
 	q.Push(State1{}, 0)
-	best := map[State1]int{{}: 0}
+	best := map[uint]int{0: 0}
 
 	var pos State1
 	var cost int
@@ -53,7 +66,11 @@ func TestPartOne(t *testing.T) {
 			break
 		}
 
-		for _, n := range m.Neighbours(pos[0].X, pos[0].Y) {
+		for _, d := range nbr4delta {
+			n := aoc.XY{X: pos[0].X + d.X, Y: pos[0].Y + d.Y}
+			if !m.Inbounds(n.X, n.Y) {
+				continue
+			}
 			if n == pos[1] {
 				continue // Don't reverse.
 			}
@@ -68,11 +85,11 @@ func TestPartOne(t *testing.T) {
 				pos[2],
 			}
 			nextCost := cost + m.At(n.X, n.Y)
-			prev := best[next]
+			prev := best[next.hash()]
 			if 0 < prev && prev <= nextCost {
 				continue
 			}
-			best[next] = nextCost
+			best[next.hash()] = nextCost
 			q.Push(next, nextCost)
 		}
 	}
@@ -85,8 +102,11 @@ type nbr struct {
 	cost int
 }
 
+var buf = make([]nbr, 0, 64)
+
+// nbrs that doesn't allocate.
 func nbrs(m aoc.Matrix[int], at, prev aoc.XY) []nbr {
-	nbrs := []nbr{}
+	nbrs := buf[:0]
 	// South
 	if prev.X == at.X {
 		if (at.X + 4) < m.Rows {
@@ -144,6 +164,10 @@ type state2 struct {
 	prev aoc.XY
 }
 
+func (s *state2) hash() uint {
+	return uint(s.pos.X + s.pos.Y<<8 + s.prev.X<<16 + s.prev.Y<<24)
+}
+
 func TestPartTwo(t *testing.T) {
 	raw := aoc.ParseMatrix(input)
 	ints := []int{}
@@ -156,7 +180,7 @@ func TestPartTwo(t *testing.T) {
 	q := aoc.NewQueue[state2]()
 	// Start is all zero.
 	q.Push(state2{}, 0)
-	best := map[state2]int{{}: 0}
+	best := map[uint]int{0: 0}
 
 	var cost int
 	var at state2
@@ -174,11 +198,11 @@ func TestPartTwo(t *testing.T) {
 			}
 			nextCost := cost + n.cost
 
-			prev := best[next]
+			prev := best[next.hash()]
 			if 0 < prev && prev <= nextCost {
 				continue
 			}
-			best[next] = nextCost
+			best[next.hash()] = nextCost
 			q.Push(next, nextCost)
 		}
 	}
