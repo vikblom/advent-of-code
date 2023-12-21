@@ -234,3 +234,19 @@ func AbsInt(a int) int {
 func Scanner(bs []byte) *bufio.Scanner {
 	return bufio.NewScanner(bytes.NewReader(bs))
 }
+
+// Greatest common divisor.
+func GCD(a, b int) int {
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return a
+}
+
+// Least common multiplier.
+func LCM(a int, bs ...int) int {
+	for _, b := range bs {
+		a = a * b / GCD(a, b)
+	}
+	return a
+}
