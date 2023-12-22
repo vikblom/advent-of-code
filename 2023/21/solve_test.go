@@ -3,6 +3,7 @@ package solve
 import (
 	"fmt"
 	"maps"
+	"math"
 	"testing"
 
 	aoc "gitlab.com/vikblom/advent-of-code"
@@ -10,12 +11,24 @@ import (
 	_ "embed"
 )
 
-type XY aoc.XY
-
 var (
 	//go:embed "input.txt"
 	input string
 )
+
+type XY aoc.XY
+
+// hash crimes in the name of speed...
+func (xy *XY) hash() int {
+	return (xy.X+math.MaxUint16)<<32 + (xy.Y + math.MaxUint16)
+}
+
+func unhash(h int) XY {
+	return XY{
+		X: (h >> 32) - math.MaxUint16,
+		Y: h&(1<<32-1) - math.MaxUint16,
+	}
+}
 
 func nbrs4(at XY) []XY {
 	return []XY{
@@ -65,18 +78,20 @@ func TestPartOne(t *testing.T) {
 
 func brute(m aoc.Matrix[byte], start XY, steps int) int {
 	i := 0
-	dist := map[XY]int{start: i}
+	dist := map[int]int{start.hash(): i}
 	prev2 := dist
 	for {
-		fill := map[XY]int{}
-		for at := range prev2 {
+		fill := map[int]int{}
+		for h := range prev2 {
+			at := unhash(h)
+
 			for _, n := range nbrs4(at) {
 				x := wrap(n.X, m.Rows)
 				y := wrap(n.Y, m.Cols)
 
-				_, seen := dist[n]
+				_, seen := dist[n.hash()]
 				if !seen && m.At(x, y) == '.' {
-					fill[n] = (i + 1)
+					fill[n.hash()] = (i + 1)
 				}
 			}
 		}
@@ -95,28 +110,6 @@ func brute(m aoc.Matrix[byte], start XY, steps int) int {
 		}
 	}
 	return ans
-}
-
-var (
-	//go:embed example.txt
-	example string
-)
-
-func TestBrute(t *testing.T) {
-	m := aoc.ParseMatrix(example)
-	var start XY
-	for r := 0; r < m.Rows; r++ {
-		for c := 0; c < m.Cols; c++ {
-			if m.At(r, c) == 'S' {
-				start = XY{r, c}
-				m.Set(r, c, '.')
-			}
-		}
-	}
-
-	for _, s := range []int{6, 10, 50, 100, 500 /*, 1000, 5000*/} {
-		t.Log("brute", s, brute(m, start, s))
-	}
 }
 
 func TestPartTwo(t *testing.T) {
