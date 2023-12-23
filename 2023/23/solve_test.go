@@ -27,58 +27,50 @@ type state struct {
 
 var nbr4delta = []aoc.XY{{X: -1, Y: 0}, {X: 1, Y: 0}, {X: 0, Y: -1}, {X: 0, Y: 1}}
 
-func TestPartOne(t *testing.T) {
-	m := aoc.ParseMatrix(input)
-
-	start := XY{0, 1}
-	goal := XY{m.Rows - 1, m.Cols - 2}
-
-	ans := 0
-	qs := []state{{start, map[XY]bool{}}}
-	for len(qs) > 0 {
-		q := qs[len(qs)-1]
-		qs = qs[:len(qs)-1]
-
-		if q.at == goal {
-			ans = max(ans, len(q.seen))
+func nbrs(m aoc.Matrix[byte], x, y int) []XY {
+	switch m.At(x, y) {
+	case '>':
+		return []XY{{X: x, Y: y + 1}}
+	case 'v':
+		return []XY{{X: x + 1, Y: y}}
+	default:
+		out := []XY{}
+		for _, d := range nbr4delta {
+			out = append(out, XY{X: x + d.X, Y: y + d.Y})
 		}
+		return out
+	}
+}
 
-		s := maps.Clone(q.seen)
-		s[q.at] = true
+type DFS struct {
+	ans  int
+	m    aoc.Matrix[byte]
+	seen aoc.Matrix[bool]
+}
 
-		switch m.At(q.at.X, q.at.Y) {
-		case '>':
-			n := XY{X: q.at.X, Y: q.at.Y + 1}
-			if !q.seen[n] {
-				qs = append(qs, state{
-					at:   n,
-					seen: s,
-				})
-			}
-		case 'v':
-			n := XY{X: q.at.X + 1, Y: q.at.Y}
-			if !s[n] {
-				qs = append(qs, state{
-					at:   n,
-					seen: s,
-				})
-			}
-		default:
-			for _, d := range nbr4delta {
-				n := XY{X: q.at.X + d.X, Y: q.at.Y + d.Y}
-				if !m.Inbounds(n.X, n.Y) || q.seen[n] || m.At(n.X, n.Y) == '#' {
-					continue
-				}
-				qs = append(qs, state{
-					at:   n,
-					seen: s,
-				})
-			}
-		}
-
+func (d *DFS) recur(x, y, dist int) {
+	if x == d.m.Rows-1 && y == d.m.Cols-2 {
+		d.ans = max(d.ans, dist)
+		return
 	}
 
-	aoc.Answer(t, ans, 2326)
+	for _, n := range nbrs(d.m, x, y) {
+		if !d.m.Inbounds(n.X, n.Y) || d.seen.At(n.X, n.Y) || d.m.At(n.X, n.Y) == '#' {
+			continue
+		}
+		d.seen.Set(n.X, n.Y, true)
+		d.recur(n.X, n.Y, dist+1)
+		d.seen.Set(n.X, n.Y, false)
+	}
+}
+
+func TestPartOne(t *testing.T) {
+	m := aoc.ParseMatrix(input)
+	seen := aoc.NewMatrix[bool](m.Rows, m.Cols)
+
+	dfs := &DFS{m: m, seen: seen}
+	dfs.recur(0, 1, 0)
+	aoc.Answer(t, dfs.ans, 2326)
 }
 
 type state2 struct {
@@ -93,6 +85,46 @@ func TestPartTwo(t *testing.T) {
 	start := XY{0, 1}
 	goal := XY{m.Rows - 1, m.Cols - 2}
 
+	intersects, reachable := reachability(m, start, goal)
+	// dump(reachable)
+
+	dfs := &DFS2{
+		reachable: reachable,
+		seen:      make([]bool, len(intersects)),
+		goal:      slices.Index(intersects, goal),
+	}
+	dfs.recur(slices.Index(intersects, start), 0)
+
+	aoc.Answer(t, dfs.ans, 6574)
+}
+
+type DFS2 struct {
+	ans       int
+	reachable aoc.Matrix[int]
+	seen      []bool
+	goal      int
+}
+
+func (d *DFS2) recur(i, dist int) {
+	if i == d.goal {
+		d.ans = max(d.ans, dist)
+	}
+
+	for j := 0; j < d.reachable.Cols; j++ {
+		toNext := d.reachable.At(i, j)
+		if toNext == 0 {
+			continue // Not reachable
+		}
+		if d.seen[j] {
+			continue
+		}
+		d.seen[j] = true
+		d.recur(j, dist+toNext)
+		d.seen[j] = false
+	}
+}
+
+func reachability(m aoc.Matrix[byte], start, goal XY) ([]XY, aoc.Matrix[int]) {
 	// Find all intersections.
 	intersects := []XY{start, goal}
 	for r := 1; r < m.Rows-1; r++ {
@@ -151,44 +183,8 @@ func TestPartTwo(t *testing.T) {
 			}
 		}
 	}
-	// dump(reachable)
 
-	// DFS brute force going from intersection to intersection.
-	ans := 0
-	qs := []state2{{
-		idxMap[start],
-		make([]bool, len(intersects)),
-		0,
-	}}
-	for len(qs) > 0 {
-		q := qs[len(qs)-1]
-		qs = qs[:len(qs)-1]
-
-		if q.idx == idxMap[goal] {
-			ans = max(ans, q.dist)
-		}
-
-		s := slices.Clone(q.seen)
-		s[q.idx] = true
-
-		for j := 0; j < reachable.Cols; j++ {
-			toNext := reachable.At(q.idx, j)
-			if toNext == 0 {
-				continue // Not reachable
-			}
-			if q.seen[j] {
-				continue
-			}
-			qs = append(qs, state2{
-				idx:  j,
-				seen: s,
-				dist: q.dist + toNext,
-			})
-		}
-	}
-
-	aoc.Answer(t, ans, 6574)
-
+	return intersects, reachable
 }
 
 func dump(m aoc.Matrix[int]) {
