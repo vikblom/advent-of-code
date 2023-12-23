@@ -4,10 +4,24 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/btree"
 	aoc "gitlab.com/vikblom/advent-of-code"
 
 	_ "embed"
 )
+
+// Optimized solution
+//
+// Replaced container/heap with btree.
+// The generic api avoids some interface overhead.
+//
+// Avoids returning candidate "neighbours" from a function
+// since that allocated too much, even if the slice for it
+// is reusing backing storage. Instead construct
+// candidate in-place.
+//
+// Use a custom hash-function for state so it
+// hits the fast64 part of builtin maps.
 
 var (
 	//go:embed "input.txt"
@@ -15,34 +29,41 @@ var (
 	inputLines = strings.Split(strings.TrimRight(input, "\n"), "\n")
 )
 
-// Need the tail to see if we can continue stragiht or not.
-// Going down on a line, three steps right, then down again:
+// State in our graph traversal.
+// Since we can't reverse, and can't keep going in the same
+// direction, keep track of if we're moving horizontally or
+// vertically.
+//
+// Note that going down on a line, three steps right, then down again:
 //
 //	v>>>
 //	   v
 //
 // is ok, even if it technically is 4 in a row.
-//
-// Keep the accumulated cost outside the state so
-// state can be used in hashmaps.
-type State1 [4]aoc.XY
-
-// hash packs all 4 x,y pairs into a uint.
-// Since dimensions are 140x140 it fits in one byte each.
-func (s *State1) hash() uint {
-	return uint(
-		s[0].X + s[0].Y<<8 +
-			s[1].X<<16 + s[1].Y<<24 +
-			s[2].X<<32 + s[2].Y<<40 +
-			s[3].X<<48 + s[3].Y<<56,
-	)
+type state struct {
+	pos        aoc.XY
+	horizontal bool
+	score      int
 }
 
-func Dist(a, b aoc.XY) int {
-	return max(aoc.AbsInt(a.X-b.X), aoc.AbsInt(a.Y-b.Y))
+func (s *state) hash() int {
+	u := s.pos.X + s.pos.Y<<8
+	if s.horizontal {
+		u += 1 << 16
+	}
+	return u
 }
 
-var nbr4delta = []aoc.XY{{X: -1, Y: 0}, {X: 1, Y: 0}, {X: 0, Y: -1}, {X: 0, Y: 1}}
+var (
+	vertDelta = []aoc.XY{
+		{X: -1, Y: 0}, {X: -2, Y: 0}, {X: -3, Y: 0},
+		{X: 1, Y: 0}, {X: 2, Y: 0}, {X: 3, Y: 0},
+	}
+	horzDelta = []aoc.XY{
+		{X: 0, Y: -1}, {X: 0, Y: -2}, {X: 0, Y: -3},
+		{X: 0, Y: 1}, {X: 0, Y: 2}, {X: 0, Y: 3},
+	}
+)
 
 func TestPartOne(t *testing.T) {
 	raw := aoc.ParseMatrix(input)
@@ -53,48 +74,56 @@ func TestPartOne(t *testing.T) {
 	m := aoc.ToMatrix(ints, raw.Rows, raw.Cols)
 	goal := aoc.XY{X: m.Rows - 1, Y: m.Cols - 1}
 
-	q := aoc.NewQueue[State1]()
+	q := btree.NewG(8, func(a, b state) bool {
+		// Cheat the total order since we don't want
+		// btree to de-duplicate states with the same score.
+		return a.score <= b.score
+	})
 	// Start is all zero.
-	q.Push(State1{}, 0)
-	best := map[uint]int{0: 0}
+	q.ReplaceOrInsert(state{horizontal: false})
+	q.ReplaceOrInsert(state{horizontal: true})
+	best := map[int]int{0: 0}
 
-	var pos State1
-	var cost int
+	var s state
 	for q.Len() > 0 {
-		pos, cost = q.Pop()
-		if pos[0] == goal {
+		s, _ = q.DeleteMin()
+		if s.pos == goal {
 			break
 		}
 
-		for _, d := range nbr4delta {
-			n := aoc.XY{X: pos[0].X + d.X, Y: pos[0].Y + d.Y}
+		var nbrs []aoc.XY
+		if s.horizontal {
+			nbrs = vertDelta
+		} else {
+			nbrs = horzDelta
+		}
+
+		cost := 0
+		for i, d := range nbrs {
+			n := aoc.XY{X: s.pos.X + d.X, Y: s.pos.Y + d.Y}
 			if !m.Inbounds(n.X, n.Y) {
 				continue
 			}
-			if n == pos[1] {
-				continue // Don't reverse.
+			if i%3 == 0 {
+				cost = 0
 			}
-			if Dist(n, pos[3]) >= 4 {
-				continue // Don't go too far.
-			}
+			cost += m.At(n.X, n.Y)
 
-			next := State1{
-				n,
-				pos[0],
-				pos[1],
-				pos[2],
+			next := state{
+				pos:        n,
+				horizontal: !s.horizontal,
+				score:      s.score + cost,
 			}
-			nextCost := cost + m.At(n.X, n.Y)
 			prev := best[next.hash()]
-			if 0 < prev && prev <= nextCost {
+			if 0 < prev && prev <= next.score {
 				continue
 			}
-			best[next.hash()] = nextCost
-			q.Push(next, nextCost)
+			best[next.hash()] = next.score
+			q.ReplaceOrInsert(next)
 		}
 	}
 
-	aoc.Answer(t, cost, 698)
+	aoc.Answer(t, s.score, 698)
 }
 
 type nbr struct {
@@ -102,71 +131,16 @@ type nbr struct {
 	cost int
 }
 
-var buf = make([]nbr, 0, 64)
-
-// nbrs that doesn't allocate.
-func nbrs(m aoc.Matrix[int], at, prev aoc.XY) []nbr {
-	nbrs := buf[:0]
-	// South
-	if prev.X == at.X {
-		if (at.X + 4) < m.Rows {
-			c := 0
-			for i := 1; i < 4; i++ {
-				c += m.At(at.X+i, at.Y)
-			}
-			for x := at.X + 4; x < min(at.X+11, m.Rows); x++ {
-				c += m.At(x, at.Y)
-				nbrs = append(nbrs, nbr{pos: aoc.XY{X: x, Y: at.Y}, cost: c})
-			}
-		}
-		// North
-		if (at.X - 4) >= 0 {
-			c := 0
-			for i := 1; i < 4; i++ {
-				c += m.At(at.X-i, at.Y)
-			}
-			for x := at.X - 4; x >= max(0, at.X-10); x-- {
-				c += m.At(x, at.Y)
-				nbrs = append(nbrs, nbr{pos: aoc.XY{X: x, Y: at.Y}, cost: c})
-			}
-		}
+var (
+	vert = []aoc.XY{
+		{X: -1, Y: 0},
+		{X: 1, Y: 0},
 	}
-	if prev.Y == at.Y {
-		// East
-		if (at.Y + 4) < m.Cols {
-			c := 0
-			for i := 1; i < 4; i++ {
-				c += m.At(at.X, at.Y+i)
-			}
-			for y := at.Y + 4; y < min(at.Y+11, m.Cols); y++ {
-				c += m.At(at.X, y)
-				nbrs = append(nbrs, nbr{pos: aoc.XY{X: at.X, Y: y}, cost: c})
-			}
-		}
-		// West
-		if (at.Y - 4) >= 0 {
-			c := 0
-			for i := 1; i < 4; i++ {
-				c += m.At(at.X, at.Y-i)
-			}
-			for y := at.Y - 4; y >= max(0, at.Y-10); y-- {
-				c += m.At(at.X, y)
-				nbrs = append(nbrs, nbr{pos: aoc.XY{X: at.X, Y: y}, cost: c})
-			}
-		}
+	horz = []aoc.XY{
+		{X: 0, Y: -1},
+		{X: 0, Y: 1},
 	}
-
-	return nbrs
-}
-
-type state2 struct {
-	pos  aoc.XY
-	prev aoc.XY
-}
-
-func (s *state2) hash() uint {
-	return uint(s.pos.X + s.pos.Y<<8 + s.prev.X<<16 + s.prev.Y<<24)
-}
+)
 
 func TestPartTwo(t *testing.T) {
 	raw := aoc.ParseMatrix(input)
@@ -177,35 +151,74 @@ func TestPartTwo(t *testing.T) {
 	m := aoc.ToMatrix(ints, raw.Rows, raw.Cols)
 	goal := aoc.XY{X: m.Rows - 1, Y: m.Cols - 1}
 
-	q := aoc.NewQueue[state2]()
+	q := btree.NewG(16, func(a, b state) bool {
+		// Cheat the total order since we don't want
+		// btree to de-duplicate states with the same score.
+		return a.score <= b.score
+	})
 	// Start is all zero.
-	q.Push(state2{}, 0)
-	best := map[uint]int{0: 0}
+	q.ReplaceOrInsert(state{horizontal: false})
+	q.ReplaceOrInsert(state{horizontal: true})
+	best := map[int]int{0: 0}
 
-	var cost int
-	var at state2
+	var s state
 	for q.Len() > 0 {
-		at, cost = q.Pop()
+		s, _ = q.DeleteMin()
 
-		if at.pos == goal {
+		if s.pos == goal {
 			break
 		}
 
-		for _, n := range nbrs(m, at.pos, at.prev) {
-			next := state2{
-				pos:  n.pos,
-				prev: at.pos,
-			}
-			nextCost := cost + n.cost
+		var dirs []aoc.XY
+		if s.horizontal {
+			dirs = vert
+		} else {
+			dirs = horz
+		}
+		if s.pos.X == 0 && s.pos.Y == 0 {
+			dirs = append(vert, horz...)
+		}
 
-			prev := best[next.hash()]
-			if 0 < prev && prev <= nextCost {
+	Dir:
+		for _, dir := range dirs {
+			if !m.Inbounds(s.pos.X+4*dir.X, s.pos.Y+4*dir.Y) {
 				continue
 			}
-			best[next.hash()] = nextCost
-			q.Push(next, nextCost)
+			cost := 0
+			x := s.pos.X
+			y := s.pos.Y
+			for i := 1; i < 4; i++ {
+				x += dir.X
+				y += dir.Y
+				if !m.Inbounds(x, y) {
+					continue Dir
+				}
+				cost += m.At(x, y)
+			}
+			for i := 4; i <= 10; i++ {
+				x += dir.X
+				y += dir.Y
+				if !m.Inbounds(x, y) {
+					continue Dir
+				}
+				cost += m.At(x, y)
+
+				next := state{
+					pos:        aoc.XY{X: x, Y: y},
+					horizontal: !s.horizontal,
+					score:      s.score + cost,
+				}
+
+				prev := best[next.hash()]
+				if 0 < prev && prev <= next.score {
+					continue
+				}
+				best[next.hash()] = next.score
+				q.ReplaceOrInsert(next)
+			}
 		}
+
 	}
 
-	aoc.Answer(t, cost, 825)
+	aoc.Answer(t, s.score, 825)
 }
