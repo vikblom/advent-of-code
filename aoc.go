@@ -35,6 +35,14 @@ func MustInt(s string) int {
 	return i
 }
 
+func MustFloat(s string) float64 {
+	i, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		panic(err)
+	}
+	return i
+}
+
 func ScanCSV(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	if atEOF && len(data) == 0 {
 		return 0, nil, nil
