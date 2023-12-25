@@ -20,11 +20,6 @@ var (
 	inputLines = strings.Split(strings.TrimRight(input, "\n"), "\n")
 )
 
-type state struct {
-	at   XY
-	seen map[XY]bool
-}
-
 var nbr4delta = []aoc.XY{{X: -1, Y: 0}, {X: 1, Y: 0}, {X: 0, Y: -1}, {X: 0, Y: 1}}
 
 func nbrs(m aoc.Matrix[byte], x, y int) []XY {
@@ -73,12 +68,6 @@ func TestPartOne(t *testing.T) {
 	aoc.Answer(t, dfs.ans, 2326)
 }
 
-type state2 struct {
-	idx  int
-	seen []bool
-	dist int
-}
-
 func TestPartTwo(t *testing.T) {
 	m := aoc.ParseMatrix(input)
 
@@ -98,6 +87,59 @@ func TestPartTwo(t *testing.T) {
 	aoc.Answer(t, dfs.ans, 6574)
 }
 
+func TestAlt(t *testing.T) {
+	m := aoc.ParseMatrix(input)
+
+	start := XY{0, 1}
+	goal := XY{m.Rows - 1, m.Cols - 2}
+
+	intersects, reachable := reachability(m, start, goal)
+	fmt.Println(intersects)
+	dump(reachable)
+
+	si := slices.Index(intersects, start)
+	gi := slices.Index(intersects, goal)
+	qs := []state{{
+		i:    si,
+		seen: 1 << si,
+		dist: 0,
+	}}
+
+	ans := 0
+	for len(qs) > 0 {
+		q := qs[len(qs)-1]
+		qs = qs[:len(qs)-1]
+
+		if q.i == gi {
+			ans = max(ans, q.dist)
+			continue
+		}
+
+		for j := 0; j < reachable.Cols; j++ {
+			toNext := reachable.At(q.i, j)
+			if toNext == 0 {
+				continue // Not reachable
+			}
+			if q.seen&(1<<j) > 0 {
+				continue
+			}
+			qs = append(qs, state{
+				i:    j,
+				seen: q.seen | (1 << j),
+				dist: q.dist + toNext,
+			})
+		}
+	}
+
+	aoc.Answer(t, ans, 6574)
+}
+
+type state struct {
+	i    int
+	dist int
+	seen int
+}
+
 type DFS2 struct {
 	ans       int
 	reachable aoc.Matrix[int]
@@ -108,6 +150,7 @@ type DFS2 struct {
 func (d *DFS2) recur(i, dist int) {
 	if i == d.goal {
 		d.ans = max(d.ans, dist)
+		return
 	}
 
 	for j := 0; j < d.reachable.Cols; j++ {
@@ -158,9 +201,7 @@ func reachability(m aoc.Matrix[byte], start, goal XY) ([]XY, aoc.Matrix[int]) {
 			for at, dist := range filled {
 				if j, ok := idxMap[at]; ok && i != j {
 					// All paths between two intersections are equally long.
-					if reachable.At(i, j) != 0 && reachable.At(i, j) != dist {
-						panic("assertion failed")
-					}
+					delete(filled, at)
 					reachable.Set(i, j, dist)
 					continue
 				}
@@ -170,12 +211,15 @@ func reachability(m aoc.Matrix[byte], start, goal XY) ([]XY, aoc.Matrix[int]) {
 					if !m.Inbounds(n.X, n.Y) || m.At(n.X, n.Y) == '#' {
 						continue
 					}
+					if j, ok := idxMap[at]; ok && i != j {
+						reachable.Set(i, j, dist)
+						continue
+					}
 					if _, ok := filled[n]; ok {
 						continue
 					}
 					fill[n] = dist + 1
 				}
-
 			}
 			maps.Copy(filled, fill)
 			if len(fill) == 0 {
@@ -188,6 +232,7 @@ func reachability(m aoc.Matrix[byte], start, goal XY) ([]XY, aoc.Matrix[int]) {
 }
 
 func dump(m aoc.Matrix[int]) {
+	fmt.Println("states:", m.Rows)
 	for r := 0; r < m.Rows; r++ {
 		for c := 0; c < m.Cols; c++ {
 			fmt.Printf("%4d", m.At(r, c))

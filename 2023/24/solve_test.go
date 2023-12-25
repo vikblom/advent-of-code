@@ -1,9 +1,11 @@
 package solve
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
+	"github.com/aclements/go-z3/z3"
 	aoc "gitlab.com/vikblom/advent-of-code"
 
 	_ "embed"
@@ -145,6 +147,44 @@ type hail2 struct {
 //
 
 func TestPartTwo(t *testing.T) {
+	hails := []hail2{}
+	for _, l := range inputLines {
+		l = strings.ReplaceAll(l, " @ ", ", ")
+		l = strings.ReplaceAll(l, ",", " ")
+		ls := strings.Fields(l)
+		hails = append(hails, hail2{
+			p: xyz{
+				x: aoc.MustInt(ls[0]),
+				y: aoc.MustInt(ls[1]),
+				z: aoc.MustInt(ls[2]),
+			},
+			dp: xyz{
+				x: aoc.MustInt(ls[3]),
+				y: aoc.MustInt(ls[4]),
+				z: aoc.MustInt(ls[5]),
+			},
+		})
+	}
+	// for _, h := range hails {
+	// 	fmt.Println(h)
+	// }
+	c := z3.NewContext(z3.NewContextConfig())
+	s := z3.NewSolver(c)
+
+	x := c.IntConst("x")
+
+	s.Assert(x.Eq(c.FromInt(4, c.IntSort()).(z3.Int)))
+
+	sat, err := s.Check()
+	if err != nil {
+		t.Fatalf("check: %s", err)
+	}
+	if !sat {
+		t.Fatalf("not satisfied")
+	}
+	v := s.Model().Eval(x, false)
+	fmt.Println(v.String())
+
 	ans := 0
 	aoc.Answer(t, ans)
 }
